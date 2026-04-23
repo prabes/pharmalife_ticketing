@@ -1,0 +1,4327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PharmaLife — Product Design | Kush Tech Nepal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Epilogue:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --g: #41af00;
+        --g2: #2d7a00;
+        --g-glow: rgba(65, 175, 0, 0.12);
+        --dark: #141414;
+        --dark2: #1e1e1e;
+        --dark3: #272727;
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0f0ee;
+        --muted: rgba(240, 240, 238, 0.45);
+        --muted2: rgba(240, 240, 238, 0.2);
+        --red: #ff4d4d;
+        --amber: #f59e0b;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: var(--dark);
+        color: var(--text);
+        font-family: "Epilogue", sans-serif;
+      }
+
+      /* ── LAYOUT ── */
+      .shell {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      /* Side nav arrows */
+      .side-nav {
+        width: 52px;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 50;
+      }
+
+      .side-nav button {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        backdrop-filter: blur(8px);
+      }
+
+      .side-nav button:hover:not(:disabled) {
+        border-color: var(--g);
+        color: var(--g);
+        background: var(--g-glow);
+      }
+
+      .side-nav button:disabled {
+        opacity: 0.2;
+        cursor: default;
+      }
+
+      /* Center stage */
+      .stage {
+        flex: 1;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Top bar */
+      .topbar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        z-index: 40;
+        border-bottom: 1px solid var(--border);
+        background: rgba(20, 20, 20, 0.8);
+        backdrop-filter: blur(12px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .brand-dot {
+        width: 22px;
+        height: 22px;
+        background: var(--g);
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .brand-dot svg {
+        width: 12px;
+        height: 12px;
+        fill: white;
+      }
+
+      .brand-name {
+        font-family: "Syne", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+
+      .brand-name span {
+        color: var(--g);
+      }
+
+      .slide-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .slide-title-label {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.5px;
+      }
+
+      .slide-dots {
+        display: flex;
+        gap: 5px;
+      }
+
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--border);
+        transition: all 0.3s;
+        cursor: pointer;
+      }
+
+      .dot.active {
+        background: var(--g);
+        width: 14px;
+        border-radius: 3px;
+      }
+
+      .slide-num {
+        font-family: "Syne", sans-serif;
+        font-size: 11px;
+        color: var(--muted);
+        min-width: 36px;
+        text-align: right;
+      }
+
+      /* Progress */
+      .progress {
+        position: absolute;
+        top: 48px;
+        left: 0;
+        height: 2px;
+        background: var(--g);
+        transition: width 0.4s ease;
+        z-index: 40;
+      }
+
+      /* Slides */
+      .slide {
+        position: absolute;
+        inset: 0;
+        top: 48px;
+        display: none;
+        padding: 40px 48px 32px;
+        overflow: hidden;
+      }
+
+      .slide.active {
+        display: flex;
+        flex-direction: column;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Common slide parts */
+      .s-tag {
+        font-size: 10px;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--g);
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .s-title {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(22px, 2.8vw, 36px);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 4px;
+      }
+
+      .s-title span {
+        color: var(--g);
+      }
+
+      .s-sub {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 24px;
+        max-width: 620px;
+      }
+
+      .slide-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 1 — COVER
+═══════════════════════════════ */
+      .s1 {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 40px 80px;
+      }
+
+      .s1-grid {
+        position: absolute;
+        inset: 0;
+        top: 48px;
+        background-image:
+          linear-gradient(rgba(65, 175, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(65, 175, 0, 0.03) 1px, transparent 1px);
+        background-size: 56px 56px;
+      }
+
+      .s1-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 500px;
+        height: 300px;
+        background: radial-gradient(
+          ellipse,
+          rgba(65, 175, 0, 0.12),
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+
+      .s1 .cover-tag {
+        font-size: 10px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--g);
+        margin-bottom: 20px;
+      }
+
+      .s1 h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(32px, 5vw, 58px);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 16px;
+      }
+
+      .s1 h1 span {
+        color: var(--g);
+      }
+
+      .s1 .cover-desc {
+        font-size: 15px;
+        color: var(--muted);
+        max-width: 480px;
+        margin: 0 auto 32px;
+        line-height: 1.7;
+      }
+
+      .cover-chips {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        background: var(--dark3);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 7px 16px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .chip.hi {
+        border-color: rgba(65, 175, 0, 0.3);
+        color: var(--g);
+        background: var(--g-glow);
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 2 — SYSTEM OVERVIEW
+═══════════════════════════════ */
+      .system-diagram {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .sys-top,
+      .sys-bottom {
+        display: flex;
+        justify-content: center;
+      }
+
+      .sys-mid {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+      }
+
+      .sys-box {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 20px;
+        text-align: center;
+        min-width: 160px;
+      }
+
+      .sys-box.highlight {
+        border-color: var(--g);
+        background: rgba(65, 175, 0, 0.06);
+      }
+
+      .sys-box .sb-icon {
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
+
+      .sys-box .sb-title {
+        font-family: "Syne", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .sys-box .sb-desc {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .sys-connector {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 0 4px;
+      }
+
+      .conn-line {
+        width: 2px;
+        flex: 1;
+        background: var(--border);
+        min-height: 16px;
+      }
+
+      .conn-line.green {
+        background: var(--g);
+        opacity: 0.4;
+      }
+
+      .conn-arrow {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .conn-label {
+        font-size: 9px;
+        color: var(--muted2);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        writing-mode: vertical-rl;
+      }
+
+      .sys-h-connector {
+        display: flex;
+        align-items: center;
+        padding: 0 4px;
+        gap: 3px;
+      }
+
+      .sys-h-line {
+        height: 1.5px;
+        width: 28px;
+        background: var(--border);
+      }
+
+      .sys-h-line.green {
+        background: var(--g);
+        opacity: 0.4;
+      }
+
+      .sys-h-arrow {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      /* 3-col system layout */
+      .sys-3col {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .sys-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        gap: 0;
+      }
+
+      .sys-role-header {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 12px 12px 0 0;
+        padding: 14px 18px;
+        width: 100%;
+        text-align: center;
+        border-bottom: none;
+      }
+
+      .sys-role-header.green-role {
+        border-color: var(--g);
+        background: rgba(65, 175, 0, 0.07);
+      }
+
+      .srh-badge {
+        display: inline-block;
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 100px;
+        margin-bottom: 6px;
+      }
+
+      .srh-badge.admin {
+        background: rgba(65, 175, 0, 0.15);
+        color: var(--g);
+      }
+
+      .srh-badge.csr {
+        background: rgba(65, 175, 0, 0.25);
+        color: var(--g);
+      }
+
+      .srh-badge.counter {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+      }
+
+      .srh-name {
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .srh-desc {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .sys-col-body {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1.5px solid var(--border);
+        border-top: none;
+        border-bottom: none;
+        flex: 1;
+        padding: 12px 14px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+      }
+
+      .sys-col-body.green-role {
+        border-color: var(--g);
+        border-top: none;
+        border-bottom: none;
+        background: rgba(65, 175, 0, 0.03);
+      }
+
+      .sys-feature {
+        background: var(--dark3);
+        border-radius: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .sf-icon {
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .sf-text .sf-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 2px;
+      }
+
+      .sf-text .sf-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .sys-col-foot {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 0 0 12px 12px;
+        border-top: none;
+        padding: 10px 14px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .sys-col-foot.green-role {
+        border-color: var(--g);
+        border-top: none;
+        background: rgba(65, 175, 0, 0.05);
+      }
+
+      .scf-outcome {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--g);
+      }
+
+      .sys-v-divider {
+        width: 1px;
+        background: var(--border);
+        margin: 0 8px;
+        align-self: stretch;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 3 — DATA FLOW
+═══════════════════════════════ */
+      .data-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+        justify-content: space-between;
+      }
+
+      .df-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+
+      .df-node {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        flex-shrink: 0;
+      }
+
+      .df-node.source {
+        border-color: rgba(255, 255, 255, 0.15);
+        min-width: 140px;
+      }
+
+      .df-node.platform {
+        border-color: var(--g);
+        background: rgba(65, 175, 0, 0.06);
+        min-width: 200px;
+        text-align: center;
+      }
+
+      .df-node.output {
+        border-color: rgba(65, 175, 0, 0.3);
+        background: rgba(65, 175, 0, 0.04);
+        min-width: 140px;
+      }
+
+      .df-node .dn-icon {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+
+      .df-node .dn-title {
+        font-family: "Syne", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 3px;
+      }
+
+      .df-node .dn-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .df-arrow {
+        padding: 0 8px;
+        color: var(--muted);
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .df-arrow.green {
+        color: var(--g);
+      }
+
+      .df-sources {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .df-outputs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .df-platform-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 4 — FOLLOW-UP SYSTEM
+═══════════════════════════════ */
+      .followup-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .fu-left {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .fu-right {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .flow-chain {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .fc-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: var(--dark2);
+        border: 1px solid var(--border);
+        border-radius: 10px 10px 0 0;
+        padding: 14px 16px;
+        border-bottom: none;
+        position: relative;
+      }
+
+      .fc-step:last-child {
+        border-radius: 0 0 10px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .fc-step:only-child {
+        border-radius: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .fc-step + .fc-step {
+        border-top: 1px dashed var(--border);
+      }
+
+      .fc-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--g);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Syne", sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      .fc-body .fc-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .fc-body .fc-desc {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .tier-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .tier-card {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .tier-card.t1 {
+        border-color: var(--g);
+      }
+
+      .tier-card.t2 {
+        border-color: var(--amber);
+      }
+
+      .tier-card.t3 {
+        border-color: var(--border);
+      }
+
+      .tc-badge {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .t1 .tc-badge {
+        background: rgba(65, 175, 0, 0.15);
+        color: var(--g);
+      }
+
+      .t2 .tc-badge {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--amber);
+      }
+
+      .t3 .tc-badge {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+      }
+
+      .tc-body .tc-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .tc-body .tc-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 5 — CSR DAILY WORKFLOW
+═══════════════════════════════ */
+      .csr-flow {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .cf-timeline {
+        display: flex;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+        overflow-x: auto;
+      }
+
+      .cf-phase {
+        flex: 1;
+        min-width: 150px;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
+      }
+
+      .cf-phase:last-child {
+        border-right: none;
+      }
+
+      .cfp-header {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        background: var(--dark2);
+      }
+
+      .cfp-step {
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .cfp-title {
+        font-family: "Syne", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .cfp-title.green {
+        color: var(--g);
+      }
+
+      .cfp-body {
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .cfp-action {
+        background: var(--dark3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+
+      .cfa-icon {
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .cfa-text {
+        font-size: 11px;
+        line-height: 1.5;
+        color: var(--text);
+      }
+
+      .cfa-text strong {
+        color: var(--g);
+        font-weight: 600;
+      }
+
+      .cfp-outcome {
+        margin: auto 14px 12px;
+        padding: 8px 12px;
+        background: rgba(65, 175, 0, 0.08);
+        border: 1px solid rgba(65, 175, 0, 0.2);
+        border-radius: 8px;
+        font-size: 10px;
+        color: var(--g);
+        font-weight: 600;
+        text-align: center;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 6 — ONLINE ORDER FLOW
+═══════════════════════════════ */
+      .order-flow {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .of-swimlane {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .ofl-label {
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 6px 12px;
+        background: var(--dark2);
+        border-radius: 6px 6px 0 0;
+        border: 1px solid var(--border);
+        border-bottom: none;
+        width: fit-content;
+      }
+
+      .ofl-track {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 0 10px 10px 10px;
+        padding: 12px 16px;
+        overflow-x: auto;
+      }
+
+      .ofl-track.csr-track {
+        border-color: var(--g);
+        background: rgba(65, 175, 0, 0.03);
+      }
+
+      .ofl-track.counter-track {
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .ofl-track.system-track {
+        border-color: rgba(65, 175, 0, 0.15);
+      }
+
+      .of-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        min-width: 110px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .ofs-bubble {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      .ofs-bubble.active {
+        border-color: var(--g);
+        background: rgba(65, 175, 0, 0.1);
+      }
+
+      .ofs-bubble.system-b {
+        border-color: rgba(65, 175, 0, 0.3);
+      }
+
+      .ofs-label {
+        font-size: 10px;
+        color: var(--text);
+        line-height: 1.4;
+      }
+
+      .ofs-sublabel {
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .ofs-tag {
+        font-size: 8px;
+        padding: 2px 7px;
+        border-radius: 100px;
+        margin-top: 2px;
+      }
+
+      .ofs-tag.inapp {
+        background: rgba(65, 175, 0, 0.15);
+        color: var(--g);
+      }
+
+      .ofs-tag.notapp {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+      }
+
+      .of-arrow {
+        color: var(--muted);
+        padding: 0 4px;
+        font-size: 12px;
+        flex-shrink: 0;
+        margin-top: -16px;
+      }
+
+      .of-arrow.green {
+        color: var(--g);
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 7 — COUNTER DASHBOARD
+═══════════════════════════════ */
+      .counter-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .counter-left {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .counter-right {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .upload-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .uf-step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        background: var(--dark2);
+        border: 1px solid var(--border);
+        border-bottom: none;
+      }
+
+      .uf-step:first-child {
+        border-radius: 10px 10px 0 0;
+      }
+
+      .uf-step:last-child {
+        border-radius: 0 0 10px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .uf-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--dark3);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        flex-shrink: 0;
+        color: var(--muted);
+      }
+
+      .uf-step.active-step .uf-num {
+        background: var(--g);
+        border-color: var(--g);
+        color: white;
+      }
+
+      .uf-text .ut-title {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .uf-text .ut-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+        margin-top: 2px;
+      }
+
+      .order-notif {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .on-item {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .on-item.pending {
+        border-color: var(--amber);
+      }
+
+      .on-item.accepted {
+        border-color: var(--g);
+      }
+
+      .oni-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      .oni-body {
+        flex: 1;
+      }
+
+      .oni-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .oni-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .oni-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .oni-btn {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 6px;
+        border: 1px solid;
+        cursor: pointer;
+        font-family: "Epilogue", sans-serif;
+      }
+
+      .oni-btn.accept {
+        border-color: var(--g);
+        color: var(--g);
+        background: rgba(65, 175, 0, 0.08);
+      }
+
+      .oni-btn.decline {
+        border-color: rgba(255, 77, 77, 0.3);
+        color: var(--red);
+        background: rgba(255, 77, 77, 0.05);
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 8 — ADMIN DASHBOARD
+═══════════════════════════════ */
+      .admin-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .admin-left {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .admin-right {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .metric-card {
+        background: var(--dark2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+
+      .metric-card.green-metric {
+        border-color: rgba(65, 175, 0, 0.3);
+        background: rgba(65, 175, 0, 0.04);
+      }
+
+      .mc-val {
+        font-family: "Syne", sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--g);
+        line-height: 1;
+      }
+
+      .mc-label {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .feature-list-v {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .flv-item {
+        background: var(--dark2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .flvi-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      .flvi-body .flvi-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .flvi-body .flvi-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 9 — ITEM MAPPING STRATEGY
+═══════════════════════════════ */
+      .mapping-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .mapping-diagram {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .md-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+
+      .md-src {
+        background: var(--dark2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        flex: 1;
+        font-size: 11px;
+      }
+
+      .md-src .ms-label {
+        font-size: 9px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+      }
+
+      .md-src .ms-val {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .md-arrow {
+        padding: 0 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .md-match {
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 10px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      .md-match.hi {
+        background: rgba(65, 175, 0, 0.15);
+        color: var(--g);
+        border: 1px solid rgba(65, 175, 0, 0.3);
+      }
+
+      .md-match.med {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--amber);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+      }
+
+      .md-match.lo {
+        background: rgba(255, 77, 77, 0.08);
+        color: var(--red);
+        border: 1px solid rgba(255, 77, 77, 0.2);
+      }
+
+      .md-action {
+        padding: 0 8px;
+        font-size: 11px;
+        color: var(--muted);
+        min-width: 110px;
+      }
+
+      .strategy-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .strat-card {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .sc-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      .sc-body .sc-title {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .sc-body .sc-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      /* ═══════════════════════════════
+   SLIDE 10 — PHASES
+═══════════════════════════════ */
+      .phases-layout {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .phases-track {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .phase-col {
+        background: var(--dark2);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .phase-col.now {
+        border-color: var(--g);
+      }
+
+      .pc-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .pc-header.now {
+        border-color: rgba(65, 175, 0, 0.2);
+      }
+
+      .pch-tag {
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .pch-tag.now-tag {
+        color: var(--g);
+      }
+
+      .pch-title {
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+      }
+
+      .pch-desc {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.5;
+      }
+
+      .pc-items {
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .pc-item {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        background: var(--dark3);
+        border-radius: 8px;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+      }
+
+      .phase-col.now .pc-item {
+        border-color: rgba(65, 175, 0, 0.12);
+      }
+
+      .pci-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border);
+        flex-shrink: 0;
+        margin-top: 5px;
+      }
+
+      .phase-col.now .pci-dot {
+        background: var(--g);
+      }
+
+      .pci-text .pci-title {
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .pci-text .pci-desc {
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .pc-footer {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      .pcf-label {
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      .phase-col.now .pcf-label {
+        color: var(--g);
+      }
+
+      .phase-col:not(.now) .pcf-label {
+        color: var(--muted);
+      }
+
+      /* SCROLLBAR */
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="shell">
+      <!-- LEFT NAV -->
+      <div class="side-nav">
+        <button id="prevBtn" onclick="go(-1)" disabled>←</button>
+      </div>
+
+      <!-- STAGE -->
+      <div class="stage">
+        <!-- Top bar -->
+        <div class="topbar">
+          <div class="brand">
+            <div class="brand-dot">
+              <svg viewBox="0 0 20 20">
+                <path
+                  d="M10 2L2 6v8l8 4 8-4V6L10 2zm0 2.5L16 8l-6 3-6-3 6-3.5zM3.5 9.5l6 3v5.5l-6-3V9.5zm8 8.5v-5.5l6-3v5.5l-6 3z"
+                />
+              </svg>
+            </div>
+            <span class="brand-name">Kush <span>Tech</span> Nepal</span>
+          </div>
+          <div class="slide-meta">
+            <span class="slide-title-label" id="slideLabel"
+              >Platform Overview</span
+            >
+            <div class="slide-dots" id="dotContainer"></div>
+            <span class="slide-num" id="slideNum">1 / 10</span>
+          </div>
+        </div>
+
+        <div class="progress" id="progressBar"></div>
+
+        <!-- ═══ SLIDE 1 — COVER ═══ -->
+        <div class="slide s1 active">
+          <div class="s1-grid"></div>
+          <div class="s1-glow"></div>
+          <div class="cover-tag">Kush Tech Nepal — Product Design Document</div>
+          <h1>PharmaLife<br /><span>Platform</span> Design</h1>
+          <p class="cover-desc">
+            System architecture, role workflows, and feature design for the
+            PharmaLife Customer Retention &amp; Operations Platform.
+          </p>
+          <div class="cover-chips">
+            <div class="chip hi">3 User Roles</div>
+            <div class="chip hi">10–11 Counters</div>
+            <div class="chip">Follow-Up Engine</div>
+            <div class="chip">Online Order Flow</div>
+            <div class="chip">CSR Ticket Board</div>
+            <div class="chip">Admin Dashboard</div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 2 — SYSTEM ARCHITECTURE ═══ -->
+        <div class="slide">
+          <div class="s-tag">System Architecture</div>
+          <div class="s-title">
+            Three roles. One <span>connected</span> platform.
+          </div>
+          <div class="s-sub">
+            Each role operates independently but feeds a shared data layer that
+            powers follow-ups, orders, and performance visibility.
+          </div>
+          <div class="slide-body">
+            <div class="sys-3col">
+              <!-- ADMIN -->
+              <div class="sys-col">
+                <div class="sys-role-header">
+                  <div class="srh-badge admin">Admin</div>
+                  <div class="srh-name">PharmaLife Admin</div>
+                  <div class="srh-desc">
+                    Configures the system, sets goals, monitors performance
+                  </div>
+                </div>
+                <div class="sys-col-body">
+                  <div class="sys-feature">
+                    <span class="sf-icon">📦</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Master Item List</div>
+                      <div class="sf-desc">
+                        Upload &amp; manage warehouse-level catalogue. Shared
+                        with 4–5 counters on same ERP.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">🏪</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Counter Management</div>
+                      <div class="sf-desc">
+                        Create counter profiles, assign item lists, configure
+                        per-counter settings.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">🎯</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Follow-Up Goals</div>
+                      <div class="sf-desc">
+                        Set daily/weekly CSR follow-up targets and define
+                        prioritization rules.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">👥</span>
+                    <div class="sf-text">
+                      <div class="sf-title">CSR User Management</div>
+                      <div class="sf-desc">
+                        Create CSR accounts, assign goals, manage access levels.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">📊</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Performance Dashboard</div>
+                      <div class="sf-desc">
+                        CSR conversion rates, follow-up coverage, sales patterns
+                        across all counters.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="sys-col-foot">
+                  <div class="scf-outcome">
+                    → Full visibility, zero manual curation
+                  </div>
+                </div>
+              </div>
+
+              <div class="sys-v-divider"></div>
+
+              <!-- CSR -->
+              <div class="sys-col">
+                <div class="sys-role-header green-role">
+                  <div class="srh-badge csr">CSR Team</div>
+                  <div class="srh-name">Customer Service Reps</div>
+                  <div class="srh-desc">
+                    Daily follow-ups, order creation, patient management
+                  </div>
+                </div>
+                <div class="sys-col-body green-role">
+                  <div class="sys-feature">
+                    <span class="sf-icon">🎫</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Daily Ticket Board</div>
+                      <div class="sf-desc">
+                        Prioritized follow-up list generated from yesterday's
+                        sales upload. Chronic patients first.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">👤</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Patient Profiles</div>
+                      <div class="sf-desc">
+                        Create/view patient records — contact info, medicine
+                        history, past orders, open tickets.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">🛒</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Online Order Creation</div>
+                      <div class="sf-desc">
+                        Initiate orders in-app. Check counter availability.
+                        Assign to fulfilling counter.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">✅</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Ticket Resolution</div>
+                      <div class="sf-desc">
+                        Log call outcomes. Mark resolved, snoozed, or escalated.
+                        Schedule follow-up tickets.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">🔔</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Order Notifications</div>
+                      <div class="sf-desc">
+                        Get notified when counter accepts/declines. Track order
+                        through fulfillment.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="sys-col-foot green-role">
+                  <div class="scf-outcome">
+                    → Structured day, nothing falls through
+                  </div>
+                </div>
+              </div>
+
+              <div class="sys-v-divider"></div>
+
+              <!-- COUNTER -->
+              <div class="sys-col">
+                <div class="sys-role-header">
+                  <div class="srh-badge counter">Counter User</div>
+                  <div class="srh-name">Pharmacy Counter</div>
+                  <div class="srh-desc">
+                    Daily uploads, order acceptance, stock visibility
+                  </div>
+                </div>
+                <div class="sys-col-body">
+                  <div class="sys-feature">
+                    <span class="sf-icon">📤</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Daily Sales Upload</div>
+                      <div class="sf-desc">
+                        Upload sales CSV/Excel each day. This becomes the source
+                        of truth for patient tracking.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">📦</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Daily Stock Upload</div>
+                      <div class="sf-desc">
+                        Upload current stock data. Used by CSR to check
+                        availability before placing orders.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">🔔</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Order Notifications</div>
+                      <div class="sf-desc">
+                        Receives incoming orders from CSR with patient and
+                        medicine details.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="sys-feature">
+                    <span class="sf-icon">✔️</span>
+                    <div class="sf-text">
+                      <div class="sf-title">Accept / Decline</div>
+                      <div class="sf-desc">
+                        Confirm full order or select only available medicines
+                        from the list.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="sys-col-foot">
+                  <div class="scf-outcome">
+                    → Minimal change to existing routine
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 3 — DATA FLOW ═══ -->
+        <div class="slide">
+          <div class="s-tag">Data Architecture</div>
+          <div class="s-title">
+            How data <span>flows</span> through the platform
+          </div>
+          <div class="s-sub">
+            Sales uploads are the engine. Everything — tickets, patient history,
+            order availability — is derived from daily counter uploads. No
+            complex integrations required.
+          </div>
+          <div class="slide-body">
+            <svg
+              viewBox="0 0 900 420"
+              style="width: 100%; flex: 1; min-height: 0"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="Epilogue,sans-serif"
+            >
+              <!-- SOURCES -->
+              <g>
+                <rect
+                  x="20"
+                  y="30"
+                  width="160"
+                  height="64"
+                  rx="10"
+                  fill="#1e1e1e"
+                  stroke="rgba(255,255,255,.1)"
+                  stroke-width="1.5"
+                />
+                <text x="100" y="53" text-anchor="middle" font-size="18">
+                  🧾
+                </text>
+                <text
+                  x="100"
+                  y="70"
+                  text-anchor="middle"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Daily Sales CSV
+                </text>
+                <text
+                  x="100"
+                  y="84"
+                  text-anchor="middle"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Per counter · uploaded daily
+                </text>
+
+                <rect
+                  x="20"
+                  y="114"
+                  width="160"
+                  height="64"
+                  rx="10"
+                  fill="#1e1e1e"
+                  stroke="rgba(255,255,255,.1)"
+                  stroke-width="1.5"
+                />
+                <text x="100" y="137" text-anchor="middle" font-size="18">
+                  📦
+                </text>
+                <text
+                  x="100"
+                  y="154"
+                  text-anchor="middle"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Daily Stock CSV
+                </text>
+                <text
+                  x="100"
+                  y="168"
+                  text-anchor="middle"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Per counter · uploaded daily
+                </text>
+
+                <rect
+                  x="20"
+                  y="198"
+                  width="160"
+                  height="64"
+                  rx="10"
+                  fill="#1e1e1e"
+                  stroke="rgba(255,255,255,.1)"
+                  stroke-width="1.5"
+                />
+                <text x="100" y="221" text-anchor="middle" font-size="18">
+                  📋
+                </text>
+                <text
+                  x="100"
+                  y="238"
+                  text-anchor="middle"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Master Item List
+                </text>
+                <text
+                  x="100"
+                  y="252"
+                  text-anchor="middle"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Admin upload · periodic
+                </text>
+
+                <rect
+                  x="20"
+                  y="282"
+                  width="160"
+                  height="64"
+                  rx="10"
+                  fill="#1e1e1e"
+                  stroke="rgba(255,255,255,.1)"
+                  stroke-width="1.5"
+                />
+                <text x="100" y="305" text-anchor="middle" font-size="18">
+                  🏪
+                </text>
+                <text
+                  x="100"
+                  y="322"
+                  text-anchor="middle"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Counter Item Lists
+                </text>
+                <text
+                  x="100"
+                  y="336"
+                  text-anchor="middle"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Per counter · admin managed
+                </text>
+
+                <text
+                  x="100"
+                  y="370"
+                  text-anchor="middle"
+                  fill="rgba(240,240,238,.3)"
+                  font-size="9"
+                  letter-spacing="2"
+                >
+                  INPUTS
+                </text>
+              </g>
+
+              <!-- ARROWS to platform -->
+              <g
+                stroke="rgba(65,175,0,.35)"
+                stroke-width="1.5"
+                fill="none"
+                stroke-dasharray="4 3"
+              >
+                <line x1="182" y1="62" x2="310" y2="140" />
+                <line x1="182" y1="146" x2="310" y2="165" />
+                <line x1="182" y1="230" x2="310" y2="190" />
+                <line x1="182" y1="314" x2="310" y2="215" />
+              </g>
+              <polygon
+                points="307,137 315,141 308,147"
+                fill="rgba(65,175,0,.5)"
+              />
+              <polygon
+                points="307,162 315,166 308,172"
+                fill="rgba(65,175,0,.5)"
+              />
+              <polygon
+                points="307,187 315,191 308,197"
+                fill="rgba(65,175,0,.5)"
+              />
+              <polygon
+                points="307,212 315,216 308,222"
+                fill="rgba(65,175,0,.5)"
+              />
+
+              <!-- PLATFORM CORE -->
+              <rect
+                x="310"
+                y="80"
+                width="200"
+                height="220"
+                rx="14"
+                fill="rgba(65,175,0,.06)"
+                stroke="#41af00"
+                stroke-width="1.5"
+              />
+              <text
+                x="410"
+                y="106"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+                letter-spacing="2"
+                font-weight="600"
+              >
+                PLATFORM CORE
+              </text>
+              <text
+                x="410"
+                y="124"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="13"
+                font-weight="800"
+                font-family="Syne,sans-serif"
+              >
+                PharmaLife
+              </text>
+              <text
+                x="410"
+                y="140"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="13"
+                font-weight="800"
+                font-family="Syne,sans-serif"
+              >
+                Database
+              </text>
+
+              <!-- Core modules -->
+              <rect
+                x="326"
+                y="155"
+                width="168"
+                height="30"
+                rx="6"
+                fill="#272727"
+                stroke="rgba(255,255,255,.08)"
+                stroke-width="1"
+              />
+              <text x="336" y="174" fill="#41af00" font-size="13">👤</text>
+              <text
+                x="356"
+                y="174"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Patient Profiles
+              </text>
+              <text x="356" y="184" fill="rgba(240,240,238,.4)" font-size="9">
+                Phone # as unique key
+              </text>
+
+              <rect
+                x="326"
+                y="193"
+                width="168"
+                height="30"
+                rx="6"
+                fill="#272727"
+                stroke="rgba(255,255,255,.08)"
+                stroke-width="1"
+              />
+              <text x="336" y="212" fill="#41af00" font-size="13">💊</text>
+              <text
+                x="356"
+                y="212"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Medicine History
+              </text>
+              <text x="356" y="222" fill="rgba(240,240,238,.4)" font-size="9">
+                Per patient, per counter
+              </text>
+
+              <rect
+                x="326"
+                y="231"
+                width="168"
+                height="30"
+                rx="6"
+                fill="#272727"
+                stroke="rgba(255,255,255,.08)"
+                stroke-width="1"
+              />
+              <text x="336" y="250" fill="#41af00" font-size="13">📊</text>
+              <text
+                x="356"
+                y="250"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Stock Availability
+              </text>
+              <text x="356" y="260" fill="rgba(240,240,238,.4)" font-size="9">
+                Real-time per counter
+              </text>
+
+              <rect
+                x="326"
+                y="269"
+                width="168"
+                height="24"
+                rx="6"
+                fill="#272727"
+                stroke="rgba(255,255,255,.08)"
+                stroke-width="1"
+              />
+              <text x="336" y="284" fill="#41af00" font-size="13">🎫</text>
+              <text
+                x="356"
+                y="284"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Follow-Up Ticket Engine
+              </text>
+
+              <!-- ARROWS to outputs -->
+              <g stroke="rgba(65,175,0,.4)" stroke-width="1.5" fill="none">
+                <line x1="512" y1="130" x2="610" y2="80" />
+                <line x1="512" y1="175" x2="610" y2="155" />
+                <line x1="512" y1="220" x2="610" y2="230" />
+                <line x1="512" y1="265" x2="610" y2="305" />
+              </g>
+              <polygon points="607,77 616,81 608,87" fill="rgba(65,175,0,.6)" />
+              <polygon
+                points="607,152 616,156 608,162"
+                fill="rgba(65,175,0,.6)"
+              />
+              <polygon
+                points="607,227 616,231 608,237"
+                fill="rgba(65,175,0,.6)"
+              />
+              <polygon
+                points="607,302 616,306 608,312"
+                fill="rgba(65,175,0,.6)"
+              />
+
+              <!-- OUTPUTS -->
+              <g>
+                <rect
+                  x="612"
+                  y="50"
+                  width="170"
+                  height="58"
+                  rx="10"
+                  fill="rgba(65,175,0,.05)"
+                  stroke="rgba(65,175,0,.3)"
+                  stroke-width="1.5"
+                />
+                <text x="622" y="73" font-size="16">🎫</text>
+                <text
+                  x="648"
+                  y="72"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  CSR Ticket Board
+                </text>
+                <text x="648" y="86" fill="rgba(240,240,238,.45)" font-size="9">
+                  Prioritized daily follow-up list
+                </text>
+                <text x="648" y="99" fill="#41af00" font-size="9">
+                  → CSR User
+                </text>
+
+                <rect
+                  x="612"
+                  y="126"
+                  width="170"
+                  height="58"
+                  rx="10"
+                  fill="rgba(65,175,0,.05)"
+                  stroke="rgba(65,175,0,.3)"
+                  stroke-width="1.5"
+                />
+                <text x="622" y="149" font-size="16">🛒</text>
+                <text
+                  x="648"
+                  y="148"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Order Management
+                </text>
+                <text
+                  x="648"
+                  y="162"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Create, assign, track orders
+                </text>
+                <text x="648" y="175" fill="#41af00" font-size="9">
+                  → CSR + Counter
+                </text>
+
+                <rect
+                  x="612"
+                  y="202"
+                  width="170"
+                  height="58"
+                  rx="10"
+                  fill="rgba(65,175,0,.05)"
+                  stroke="rgba(65,175,0,.3)"
+                  stroke-width="1.5"
+                />
+                <text x="622" y="225" font-size="16">📊</text>
+                <text
+                  x="648"
+                  y="224"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Admin Dashboard
+                </text>
+                <text
+                  x="648"
+                  y="238"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Performance &amp; sales metrics
+                </text>
+                <text x="648" y="251" fill="#41af00" font-size="9">
+                  → Admin
+                </text>
+
+                <rect
+                  x="612"
+                  y="278"
+                  width="170"
+                  height="58"
+                  rx="10"
+                  fill="rgba(65,175,0,.05)"
+                  stroke="rgba(65,175,0,.3)"
+                  stroke-width="1.5"
+                />
+                <text x="622" y="301" font-size="16">🔔</text>
+                <text
+                  x="648"
+                  y="300"
+                  fill="#f0f0ee"
+                  font-size="11"
+                  font-weight="600"
+                >
+                  Counter Notifications
+                </text>
+                <text
+                  x="648"
+                  y="314"
+                  fill="rgba(240,240,238,.45)"
+                  font-size="9"
+                >
+                  Order alerts, upload reminders
+                </text>
+                <text x="648" y="327" fill="#41af00" font-size="9">
+                  → Counter User
+                </text>
+
+                <text
+                  x="697"
+                  y="370"
+                  text-anchor="middle"
+                  fill="rgba(240,240,238,.3)"
+                  font-size="9"
+                  letter-spacing="2"
+                >
+                  OUTPUTS
+                </text>
+              </g>
+
+              <!-- Source of truth label -->
+              <text
+                x="410"
+                y="365"
+                text-anchor="middle"
+                fill="rgba(65,175,0,.6)"
+                font-size="9"
+                letter-spacing="1.5"
+              >
+                SOURCE OF TRUTH: UPLOADED FILES
+              </text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 4 — FOLLOW-UP ENGINE ═══ -->
+        <div class="slide">
+          <div class="s-tag">Follow-Up Engine</div>
+          <div class="s-title">
+            How <span>follow-up tickets</span> are generated &amp; prioritized
+          </div>
+          <div class="s-sub">
+            From 20k+ daily sales, the platform surfaces the 50–80 patients 3
+            CSRs can actually act on — using logic encoded from your admin's
+            existing instincts.
+          </div>
+          <div class="slide-body">
+            <div class="followup-layout">
+              <div class="fu-left">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                  "
+                >
+                  Generation Flow
+                </div>
+                <div class="flow-chain">
+                  <div class="fc-step">
+                    <div class="fc-num">1</div>
+                    <div class="fc-body">
+                      <div class="fc-title">Counter uploads sales CSV</div>
+                      <div class="fc-desc">
+                        End of day. Contains: patient name, phone number,
+                        medicines bought, quantities, date.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fc-step">
+                    <div class="fc-num">2</div>
+                    <div class="fc-body">
+                      <div class="fc-title">
+                        Platform parses &amp; maps to patient profiles
+                      </div>
+                      <div class="fc-desc">
+                        Phone number used as unique key. New patients created.
+                        Existing profiles updated with latest purchase.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fc-step">
+                    <div class="fc-num">3</div>
+                    <div class="fc-body">
+                      <div class="fc-title">Filter rules applied</div>
+                      <div class="fc-desc">
+                        System checks: repeat buyer? chronic medicine? cycle
+                        window approaching? Purchase value threshold?
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fc-step">
+                    <div class="fc-num">4</div>
+                    <div class="fc-body">
+                      <div class="fc-title">
+                        Tickets generated &amp; prioritized
+                      </div>
+                      <div class="fc-desc">
+                        Tier 1 first, then Tier 2. Daily cap configurable by
+                        Admin to avoid CSR overload.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fc-step">
+                    <div class="fc-num">5</div>
+                    <div class="fc-body">
+                      <div class="fc-title">
+                        CSR opens ticket board next morning
+                      </div>
+                      <div class="fc-desc">
+                        Ready list. No manual curation by admin required.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="fu-right">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                  "
+                >
+                  Prioritization Tiers
+                </div>
+                <div class="tier-cards">
+                  <div class="tier-card t1">
+                    <div class="tc-badge">Tier 1</div>
+                    <div class="tc-body">
+                      <div class="tc-title">Chronic / Repeat Patients</div>
+                      <div class="tc-desc">
+                        Bought same medicine 2+ times. On BP, diabetes, thyroid,
+                        or other chronic meds. Refill cycle window approaching
+                        (e.g. bought 30-day supply 25+ days ago). Highest
+                        conversion probability. Follow up first.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tier-card t2">
+                    <div class="tc-badge">Tier 2</div>
+                    <div class="tc-body">
+                      <div class="tc-title">Lapsed High-Value Patients</div>
+                      <div class="tc-desc">
+                        Previously regular buyer — no purchase in 30–45 days. Or
+                        single purchase above a set value threshold. Worth a
+                        recovery call. Assigned after Tier 1 tickets are
+                        covered.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tier-card t3">
+                    <div class="tc-badge">Tier 3</div>
+                    <div class="tc-body">
+                      <div class="tc-title">Everyone Else</div>
+                      <div class="tc-desc">
+                        Not followed up manually in Phase 1. Future automation
+                        territory — SMS / WhatsApp reminders in Phase 3. System
+                        tracks them silently in the background.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: var(--dark2);
+                    border: 1px solid rgba(65, 175, 0, 0.2);
+                    border-radius: 10px;
+                    padding: 12px 14px;
+                    margin-top: 4px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--g);
+                      font-weight: 600;
+                      margin-bottom: 4px;
+                    "
+                  >
+                    ⚙️ Admin Configurable Rules
+                  </div>
+                  <div
+                    style="
+                      font-size: 11px;
+                      color: var(--muted);
+                      line-height: 1.6;
+                    "
+                  >
+                    Daily ticket cap per CSR · Cycle window thresholds ·
+                    Medicine category tags (chronic vs acute) · Minimum purchase
+                    value for Tier 2
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 5 — CSR DAILY WORKFLOW ═══ -->
+        <div class="slide">
+          <div class="s-tag">CSR Workflow</div>
+          <div class="s-title">
+            A <span>CSR's day</span> inside the platform
+          </div>
+          <div class="s-sub">
+            From opening the app to closing the last ticket — every step is
+            structured, logged, and actionable.
+          </div>
+          <div class="slide-body">
+            <div class="csr-flow">
+              <div class="cf-timeline">
+                <div class="cf-phase">
+                  <div class="cfp-header">
+                    <div class="cfp-step">Step 01</div>
+                    <div class="cfp-title green">Open Ticket Board</div>
+                  </div>
+                  <div class="cfp-body">
+                    <div class="cfp-action">
+                      <div class="cfa-icon">🎫</div>
+                      <div class="cfa-text">
+                        Platform shows
+                        <strong>today's prioritized list</strong> — Tier 1
+                        patients at top, sorted by cycle urgency.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">👁️</div>
+                      <div class="cfa-text">
+                        Each ticket shows: patient name, phone,
+                        <strong>medicine + last purchase date</strong>, days
+                        since last buy.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">📊</div>
+                      <div class="cfa-text">
+                        Daily target visible —
+                        <strong>X tickets assigned</strong>, Y completed so far.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cfp-outcome">Ready to work in &lt;30 seconds</div>
+                </div>
+
+                <div class="cf-phase">
+                  <div class="cfp-header">
+                    <div class="cfp-step">Step 02</div>
+                    <div class="cfp-title green">Open a Ticket</div>
+                  </div>
+                  <div class="cfp-body">
+                    <div class="cfp-action">
+                      <div class="cfa-icon">👤</div>
+                      <div class="cfa-text">
+                        Full patient profile:
+                        <strong>all past purchases</strong> across any counter,
+                        medicine history, previous follow-up notes.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">💊</div>
+                      <div class="cfa-text">
+                        Medicines flagged for follow-up
+                        <strong>highlighted clearly</strong>. Quantity bought
+                        last time visible.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">📞</div>
+                      <div class="cfa-text">
+                        Phone number one-tap accessible. Call happens
+                        <strong>outside the app</strong>.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cfp-outcome">Full context before the call</div>
+                </div>
+
+                <div class="cf-phase">
+                  <div class="cfp-header">
+                    <div class="cfp-step">Step 03</div>
+                    <div class="cfp-title green">Log the Outcome</div>
+                  </div>
+                  <div class="cfp-body">
+                    <div class="cfp-action">
+                      <div class="cfa-icon">✅</div>
+                      <div class="cfa-text">
+                        <strong>Patient needs medicine</strong> → Start online
+                        order flow directly from ticket.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">⏰</div>
+                      <div class="cfa-text">
+                        <strong>Not yet / snooze</strong> → Reschedule ticket
+                        for X days. Reason logged.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">❌</div>
+                      <div class="cfa-text">
+                        <strong>No answer / closed</strong> → Marked, retried
+                        tomorrow or moved to Tier 2 queue.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cfp-outcome">
+                    Every call recorded, nothing lost
+                  </div>
+                </div>
+
+                <div class="cf-phase">
+                  <div class="cfp-header">
+                    <div class="cfp-step">Step 04</div>
+                    <div class="cfp-title green">Create Order (if needed)</div>
+                  </div>
+                  <div class="cfp-body">
+                    <div class="cfp-action">
+                      <div class="cfa-icon">🏪</div>
+                      <div class="cfa-text">
+                        Platform shows <strong>counters with stock</strong> for
+                        the requested medicines based on latest upload.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">📤</div>
+                      <div class="cfa-text">
+                        CSR selects counter →
+                        <strong>"Ask Counter for Availability"</strong> sent as
+                        in-app notification.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">🔔</div>
+                      <div class="cfa-text">
+                        Counter accepts/declines → CSR
+                        <strong>notified instantly</strong>. Order confirmed or
+                        reassigned.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cfp-outcome">
+                    Order in motion without WhatsApp
+                  </div>
+                </div>
+
+                <div class="cf-phase">
+                  <div class="cfp-header">
+                    <div class="cfp-step">Step 05</div>
+                    <div class="cfp-title green">Schedule Follow-Up</div>
+                  </div>
+                  <div class="cfp-body">
+                    <div class="cfp-action">
+                      <div class="cfa-icon">📅</div>
+                      <div class="cfa-text">
+                        After order confirmed, CSR selects which medicines to
+                        <strong>schedule for next cycle</strong> follow-up.
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">🎫</div>
+                      <div class="cfa-text">
+                        System auto-creates a
+                        <strong>future follow-up ticket</strong> based on cycle
+                        window (e.g. 28 days).
+                      </div>
+                    </div>
+                    <div class="cfp-action">
+                      <div class="cfa-icon">🔄</div>
+                      <div class="cfa-text">
+                        Patient retention loop
+                        <strong>closes automatically</strong> — no manual
+                        re-entry by admin.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cfp-outcome">Retention loop self-sustaining</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 6 — ONLINE ORDER FLOW ═══ -->
+        <div class="slide">
+          <div class="s-tag">Online Order Flow</div>
+          <div class="s-title">
+            From follow-up call to <span>fulfilled order</span>
+          </div>
+          <div class="s-sub">
+            The same flow handles both inbound follow-up orders and fresh B2C
+            requests. CSR is the single point of coordination.
+          </div>
+          <div class="slide-body">
+            <svg
+              viewBox="0 0 860 390"
+              style="width: 100%; flex: 1; min-height: 0"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="Epilogue,sans-serif"
+            >
+              <!-- Swimlane: CSR -->
+              <rect
+                x="10"
+                y="10"
+                width="840"
+                height="110"
+                rx="10"
+                fill="rgba(65,175,0,.04)"
+                stroke="rgba(65,175,0,.25)"
+                stroke-width="1.5"
+              />
+              <text
+                x="22"
+                y="28"
+                fill="#41af00"
+                font-size="9"
+                letter-spacing="2"
+                font-weight="600"
+              >
+                CSR TEAM
+              </text>
+
+              <!-- Swimlane: System -->
+              <rect
+                x="10"
+                y="130"
+                width="840"
+                height="110"
+                rx="10"
+                fill="rgba(255,255,255,.02)"
+                stroke="rgba(255,255,255,.08)"
+                stroke-width="1.5"
+              />
+              <text
+                x="22"
+                y="148"
+                fill="rgba(240,240,238,.4)"
+                font-size="9"
+                letter-spacing="2"
+                font-weight="600"
+              >
+                PLATFORM
+              </text>
+
+              <!-- Swimlane: Counter -->
+              <rect
+                x="10"
+                y="250"
+                width="840"
+                height="110"
+                rx="10"
+                fill="rgba(255,255,255,.02)"
+                stroke="rgba(255,255,255,.1)"
+                stroke-width="1.5"
+              />
+              <text
+                x="22"
+                y="268"
+                fill="rgba(240,240,238,.4)"
+                font-size="9"
+                letter-spacing="2"
+                font-weight="600"
+              >
+                COUNTER USER
+              </text>
+
+              <!-- Step nodes -->
+              <!-- Step 1: Create Patient -->
+              <rect
+                x="30"
+                y="38"
+                width="96"
+                height="72"
+                rx="8"
+                fill="#272727"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+              />
+              <text x="78" y="60" text-anchor="middle" font-size="18">👤</text>
+              <text
+                x="78"
+                y="77"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Create / Open
+              </text>
+              <text
+                x="78"
+                y="90"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Patient
+              </text>
+              <rect
+                x="44"
+                y="100"
+                width="68"
+                height="14"
+                rx="4"
+                fill="rgba(65,175,0,.15)"
+              />
+              <text
+                x="78"
+                y="111"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Arrow -->
+              <line
+                x1="128"
+                y1="74"
+                x2="156"
+                y2="74"
+                stroke="rgba(65,175,0,.5)"
+                stroke-width="1.5"
+              />
+              <polygon points="153,70 161,74 153,78" fill="rgba(65,175,0,.7)" />
+
+              <!-- Step 2: Add Medicines -->
+              <rect
+                x="158"
+                y="38"
+                width="96"
+                height="72"
+                rx="8"
+                fill="#272727"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+              />
+              <text x="206" y="60" text-anchor="middle" font-size="18">💊</text>
+              <text
+                x="206"
+                y="77"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Add Medicine
+              </text>
+              <text
+                x="206"
+                y="90"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Details
+              </text>
+              <rect
+                x="172"
+                y="100"
+                width="68"
+                height="14"
+                rx="4"
+                fill="rgba(65,175,0,.15)"
+              />
+              <text
+                x="206"
+                y="111"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Arrow -->
+              <line
+                x1="256"
+                y1="74"
+                x2="284"
+                y2="74"
+                stroke="rgba(65,175,0,.5)"
+                stroke-width="1.5"
+              />
+              <polygon points="281,70 289,74 281,78" fill="rgba(65,175,0,.7)" />
+
+              <!-- Step 3: Check Availability -->
+              <rect
+                x="286"
+                y="38"
+                width="110"
+                height="72"
+                rx="8"
+                fill="#272727"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+              />
+              <text x="341" y="60" text-anchor="middle" font-size="18">🏪</text>
+              <text
+                x="341"
+                y="77"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                View Counters
+              </text>
+              <text
+                x="341"
+                y="90"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                w/ Stock
+              </text>
+              <rect
+                x="300"
+                y="100"
+                width="82"
+                height="14"
+                rx="4"
+                fill="rgba(65,175,0,.15)"
+              />
+              <text
+                x="341"
+                y="111"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Arrow -->
+              <line
+                x1="398"
+                y1="74"
+                x2="424"
+                y2="74"
+                stroke="rgba(65,175,0,.5)"
+                stroke-width="1.5"
+              />
+              <polygon points="421,70 429,74 421,78" fill="rgba(65,175,0,.7)" />
+
+              <!-- Step 4: Ask Availability -->
+              <rect
+                x="426"
+                y="38"
+                width="110"
+                height="72"
+                rx="8"
+                fill="#272727"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+              />
+              <text x="481" y="60" text-anchor="middle" font-size="18">📤</text>
+              <text
+                x="481"
+                y="77"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Ask Counter
+              </text>
+              <text
+                x="481"
+                y="90"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                for Availability
+              </text>
+              <rect
+                x="440"
+                y="100"
+                width="82"
+                height="14"
+                rx="4"
+                fill="rgba(65,175,0,.15)"
+              />
+              <text
+                x="481"
+                y="111"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Down arrow to system -->
+              <line
+                x1="481"
+                y1="112"
+                x2="481"
+                y2="140"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+                stroke-dasharray="3 2"
+              />
+              <polygon
+                points="477,137 481,145 485,137"
+                fill="rgba(65,175,0,.5)"
+              />
+
+              <!-- System: notification sent -->
+              <rect
+                x="426"
+                y="145"
+                width="110"
+                height="60"
+                rx="8"
+                fill="#1e1e1e"
+                stroke="rgba(65,175,0,.2)"
+                stroke-width="1.5"
+              />
+              <text x="481" y="165" text-anchor="middle" font-size="14">
+                🔔
+              </text>
+              <text
+                x="481"
+                y="180"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Notification
+              </text>
+              <text
+                x="481"
+                y="193"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.4)"
+                font-size="9"
+              >
+                Sent to Counter
+              </text>
+
+              <!-- Down arrow to counter -->
+              <line
+                x1="481"
+                y1="207"
+                x2="481"
+                y2="258"
+                stroke="rgba(255,255,255,.2)"
+                stroke-width="1.5"
+                stroke-dasharray="3 2"
+              />
+              <polygon
+                points="477,255 481,263 485,255"
+                fill="rgba(255,255,255,.3)"
+              />
+
+              <!-- Counter: receives order -->
+              <rect
+                x="426"
+                y="260"
+                width="110"
+                height="72"
+                rx="8"
+                fill="#1e1e1e"
+                stroke="rgba(255,255,255,.15)"
+                stroke-width="1.5"
+              />
+              <text x="481" y="282" text-anchor="middle" font-size="18">
+                📋
+              </text>
+              <text
+                x="481"
+                y="299"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Receives Order
+              </text>
+              <text
+                x="481"
+                y="312"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Details
+              </text>
+              <rect
+                x="440"
+                y="322"
+                width="82"
+                height="14"
+                rx="4"
+                fill="rgba(255,255,255,.06)"
+              />
+              <text
+                x="481"
+                y="333"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.4)"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Arrow right -->
+              <line
+                x1="538"
+                y1="296"
+                x2="566"
+                y2="296"
+                stroke="rgba(255,255,255,.25)"
+                stroke-width="1.5"
+              />
+              <polygon
+                points="563,292 571,296 563,300"
+                fill="rgba(255,255,255,.35)"
+              />
+
+              <!-- Counter: accept/decline -->
+              <rect
+                x="568"
+                y="260"
+                width="110"
+                height="72"
+                rx="8"
+                fill="#1e1e1e"
+                stroke="rgba(255,255,255,.15)"
+                stroke-width="1.5"
+              />
+              <text x="623" y="282" text-anchor="middle" font-size="18">
+                ✅
+              </text>
+              <text
+                x="623"
+                y="299"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Accept / Decline
+              </text>
+              <text
+                x="623"
+                y="312"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                + Item Select
+              </text>
+              <rect
+                x="582"
+                y="322"
+                width="82"
+                height="14"
+                rx="4"
+                fill="rgba(255,255,255,.06)"
+              />
+              <text
+                x="623"
+                y="333"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.4)"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Up arrow to system -->
+              <line
+                x1="623"
+                y1="258"
+                x2="623"
+                y2="207"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+                stroke-dasharray="3 2"
+              />
+              <polygon
+                points="619,210 623,202 627,210"
+                fill="rgba(65,175,0,.5)"
+              />
+
+              <!-- System: updates CSR -->
+              <rect
+                x="568"
+                y="145"
+                width="110"
+                height="60"
+                rx="8"
+                fill="#1e1e1e"
+                stroke="rgba(65,175,0,.2)"
+                stroke-width="1.5"
+              />
+              <text x="623" y="165" text-anchor="middle" font-size="14">
+                🔄
+              </text>
+              <text
+                x="623"
+                y="180"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Status Updated
+              </text>
+              <text
+                x="623"
+                y="193"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.4)"
+                font-size="9"
+              >
+                CSR Notified
+              </text>
+
+              <!-- Up arrow to CSR -->
+              <line
+                x1="623"
+                y1="143"
+                x2="623"
+                y2="112"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+                stroke-dasharray="3 2"
+              />
+              <polygon
+                points="619,115 623,107 627,115"
+                fill="rgba(65,175,0,.5)"
+              />
+
+              <!-- Step 5: CSR Notified -->
+              <rect
+                x="568"
+                y="38"
+                width="110"
+                height="72"
+                rx="8"
+                fill="#272727"
+                stroke="rgba(65,175,0,.4)"
+                stroke-width="1.5"
+              />
+              <text x="623" y="60" text-anchor="middle" font-size="18">🔔</text>
+              <text
+                x="623"
+                y="77"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                CSR Gets
+              </text>
+              <text
+                x="623"
+                y="90"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Notification
+              </text>
+              <rect
+                x="582"
+                y="100"
+                width="82"
+                height="14"
+                rx="4"
+                fill="rgba(65,175,0,.15)"
+              />
+              <text
+                x="623"
+                y="111"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+              >
+                In App
+              </text>
+
+              <!-- Arrow -->
+              <line
+                x1="680"
+                y1="74"
+                x2="706"
+                y2="74"
+                stroke="rgba(65,175,0,.5)"
+                stroke-width="1.5"
+              />
+              <polygon points="703,70 711,74 703,78" fill="rgba(65,175,0,.7)" />
+
+              <!-- Step 6: Schedule Follow-Up -->
+              <rect
+                x="708"
+                y="38"
+                width="118"
+                height="72"
+                rx="8"
+                fill="#272727"
+                stroke="rgba(65,175,0,.5)"
+                stroke-width="2"
+              />
+              <text x="767" y="60" text-anchor="middle" font-size="18">📅</text>
+              <text
+                x="767"
+                y="77"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Schedule
+              </text>
+              <text
+                x="767"
+                y="90"
+                text-anchor="middle"
+                fill="#f0f0ee"
+                font-size="10"
+                font-weight="600"
+              >
+                Follow-Up Ticket
+              </text>
+              <rect
+                x="722"
+                y="100"
+                width="90"
+                height="14"
+                rx="4"
+                fill="rgba(65,175,0,.2)"
+              />
+              <text
+                x="767"
+                y="111"
+                text-anchor="middle"
+                fill="#41af00"
+                font-size="9"
+                font-weight="600"
+              >
+                In App ✓
+              </text>
+
+              <!-- Dispatch note -->
+              <rect
+                x="708"
+                y="260"
+                width="118"
+                height="72"
+                rx="8"
+                fill="#1a1a1a"
+                stroke="rgba(255,255,255,.08)"
+                stroke-width="1.5"
+                stroke-dasharray="4 3"
+              />
+              <text x="767" y="282" text-anchor="middle" font-size="18">
+                🚚
+              </text>
+              <text
+                x="767"
+                y="299"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.5)"
+                font-size="10"
+              >
+                Counter Dispatches
+              </text>
+              <text
+                x="767"
+                y="312"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.5)"
+                font-size="10"
+              >
+                with Bill
+              </text>
+              <rect
+                x="722"
+                y="322"
+                width="90"
+                height="14"
+                rx="4"
+                fill="rgba(255,255,255,.04)"
+              />
+              <text
+                x="767"
+                y="333"
+                text-anchor="middle"
+                fill="rgba(240,240,238,.3)"
+                font-size="9"
+              >
+                Outside App
+              </text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 7 — COUNTER DASHBOARD ═══ -->
+        <div class="slide">
+          <div class="s-tag">Counter User</div>
+          <div class="s-title">
+            Counter dashboard: <span>uploads &amp; orders</span>
+          </div>
+          <div class="s-sub">
+            Designed to fit into an existing daily routine with minimal
+            friction. Two daily tasks + order management.
+          </div>
+          <div class="slide-body">
+            <div class="counter-layout">
+              <div class="counter-left">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                  "
+                >
+                  Daily Upload Flow
+                </div>
+                <div class="upload-flow">
+                  <div class="uf-step active-step">
+                    <div class="uf-num">1</div>
+                    <div class="uf-text">
+                      <div class="ut-title">
+                        Export from existing billing/ERP system
+                      </div>
+                      <div class="ut-desc">
+                        Counter exports sales &amp; stock as CSV or Excel — same
+                        format they use today. No change to their process.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uf-step active-step">
+                    <div class="uf-num">2</div>
+                    <div class="uf-text">
+                      <div class="ut-title">Upload Sales CSV to platform</div>
+                      <div class="ut-desc">
+                        Simple drag &amp; drop or file picker. Platform confirms
+                        row count and flags obvious errors.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uf-step active-step">
+                    <div class="uf-num">3</div>
+                    <div class="uf-text">
+                      <div class="ut-title">Upload Stock CSV to platform</div>
+                      <div class="ut-desc">
+                        Current stock snapshot. Used by CSR to verify
+                        availability before placing orders.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="uf-step">
+                    <div class="uf-num">4</div>
+                    <div class="uf-text">
+                      <div class="ut-title">
+                        Dashboard confirms upload status
+                      </div>
+                      <div class="ut-desc">
+                        Green checkmark = today's data is live. Missed upload?
+                        Platform flags it for admin visibility.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: rgba(65, 175, 0, 0.06);
+                    border: 1px solid rgba(65, 175, 0, 0.2);
+                    border-radius: 10px;
+                    padding: 12px 14px;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      font-weight: 600;
+                      color: var(--g);
+                      margin-bottom: 4px;
+                    "
+                  >
+                    ⚠️ Important Design Decision
+                  </div>
+                  <div
+                    style="
+                      font-size: 11px;
+                      color: var(--muted);
+                      line-height: 1.6;
+                    "
+                  >
+                    Sales and stock data are
+                    <strong style="color: var(--text)"
+                      >not cross-validated</strong
+                    >. Uploaded file = source of truth. No reconciliation
+                    required. Keeps it simple and scalable.
+                  </div>
+                </div>
+              </div>
+              <div class="counter-right">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                  "
+                >
+                  Order Notification Flow
+                </div>
+                <div class="order-notif">
+                  <div class="on-item pending">
+                    <div class="oni-icon">🔔</div>
+                    <div class="oni-body">
+                      <div class="oni-title">New Order Received</div>
+                      <div class="oni-desc">
+                        Patient: Ram Sharma · Phone: 98XXXXXXXX<br />Medicines:
+                        Metformin 500mg × 60, Atorvastatin 10mg × 30<br />Requested
+                        by: CSR Sita
+                      </div>
+                      <div class="oni-actions">
+                        <button class="oni-btn accept">
+                          ✓ Accept Full Order
+                        </button>
+                        <button class="oni-btn decline">
+                          Select Available Only
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="on-item accepted">
+                    <div class="oni-icon">✅</div>
+                    <div class="oni-body">
+                      <div class="oni-title">Order #0042 — Accepted</div>
+                      <div class="oni-desc">
+                        All items confirmed available. Counter will dispatch
+                        with bill. CSR has been notified.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="on-item">
+                    <div class="oni-icon">📦</div>
+                    <div class="oni-body">
+                      <div class="oni-title">Partial Accept — Order #0039</div>
+                      <div class="oni-desc">
+                        Metformin 500mg confirmed. Atorvastatin out of stock —
+                        CSR reassigning to Counter 3.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 8 — ADMIN DASHBOARD ═══ -->
+        <div class="slide">
+          <div class="s-tag">Admin Dashboard</div>
+          <div class="s-title">What Admin <span>sees &amp; controls</span></div>
+          <div class="s-sub">
+            Full operational visibility across all counters and CSR performance
+            — without needing to manually touch any data.
+          </div>
+          <div class="slide-body">
+            <div class="admin-layout">
+              <div class="admin-left">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                  "
+                >
+                  Performance Metrics
+                </div>
+                <div class="metrics-grid">
+                  <div class="metric-card green-metric">
+                    <div class="mc-val">87%</div>
+                    <div class="mc-label">Follow-up coverage today</div>
+                  </div>
+                  <div class="metric-card green-metric">
+                    <div class="mc-val">34%</div>
+                    <div class="mc-label">Ticket → Order conversion</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="mc-val">142</div>
+                    <div class="mc-label">Tickets closed this week</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="mc-val">8/10</div>
+                    <div class="mc-label">Counters uploaded today</div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                    margin-top: 8px;
+                  "
+                >
+                  CSR Performance View
+                </div>
+                <div
+                  style="
+                    background: var(--dark2);
+                    border: 1px solid var(--border);
+                    border-radius: 10px;
+                    overflow: hidden;
+                  "
+                >
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 60px 60px 60px;
+                      gap: 0;
+                      font-size: 10px;
+                      padding: 8px 12px;
+                      background: var(--dark3);
+                      color: var(--muted);
+                      font-weight: 600;
+                      letter-spacing: 0.5px;
+                      text-transform: uppercase;
+                    "
+                  >
+                    <span>CSR</span
+                    ><span style="text-align: center">Assigned</span
+                    ><span style="text-align: center">Done</span
+                    ><span style="text-align: center">Conv%</span>
+                  </div>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 60px 60px 60px;
+                      padding: 10px 12px;
+                      border-top: 1px solid var(--border);
+                      font-size: 11px;
+                      align-items: center;
+                    "
+                  >
+                    <span style="font-weight: 600">Sita Thapa</span
+                    ><span style="text-align: center; color: var(--muted)"
+                      >28</span
+                    ><span
+                      style="
+                        text-align: center;
+                        color: var(--g);
+                        font-weight: 600;
+                      "
+                      >24</span
+                    ><span
+                      style="
+                        text-align: center;
+                        color: var(--g);
+                        font-weight: 600;
+                      "
+                      >42%</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 60px 60px 60px;
+                      padding: 10px 12px;
+                      border-top: 1px solid var(--border);
+                      font-size: 11px;
+                      align-items: center;
+                    "
+                  >
+                    <span style="font-weight: 600">Hari Khadka</span
+                    ><span style="text-align: center; color: var(--muted)"
+                      >28</span
+                    ><span
+                      style="
+                        text-align: center;
+                        color: var(--amber);
+                        font-weight: 600;
+                      "
+                      >19</span
+                    ><span
+                      style="
+                        text-align: center;
+                        color: var(--amber);
+                        font-weight: 600;
+                      "
+                      >28%</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 60px 60px 60px;
+                      padding: 10px 12px;
+                      border-top: 1px solid var(--border);
+                      font-size: 11px;
+                      align-items: center;
+                    "
+                  >
+                    <span style="font-weight: 600">Mina Shrestha</span
+                    ><span style="text-align: center; color: var(--muted)"
+                      >26</span
+                    ><span
+                      style="
+                        text-align: center;
+                        color: var(--g);
+                        font-weight: 600;
+                      "
+                      >26</span
+                    ><span
+                      style="
+                        text-align: center;
+                        color: var(--g);
+                        font-weight: 600;
+                      "
+                      >38%</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="admin-right">
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 4px;
+                  "
+                >
+                  Configuration Features
+                </div>
+                <div class="feature-list-v">
+                  <div class="flv-item">
+                    <span class="flvi-icon">📦</span>
+                    <div class="flvi-body">
+                      <div class="flvi-title">Item List Management</div>
+                      <div class="flvi-desc">
+                        Upload master item list. Assign per-counter item lists.
+                        4–5 counters sharing ERP can share master list directly.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flv-item">
+                    <span class="flvi-icon">🎯</span>
+                    <div class="flvi-body">
+                      <div class="flvi-title">Follow-Up Rule Configuration</div>
+                      <div class="flvi-desc">
+                        Set daily ticket cap per CSR. Define chronic medicine
+                        categories. Configure cycle window thresholds (e.g. 25
+                        days for 30-day supply).
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flv-item">
+                    <span class="flvi-icon">👥</span>
+                    <div class="flvi-body">
+                      <div class="flvi-title">CSR User Management</div>
+                      <div class="flvi-desc">
+                        Create CSR accounts. Set individual daily targets. View
+                        per-CSR performance history and ticket logs.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flv-item">
+                    <span class="flvi-icon">🏪</span>
+                    <div class="flvi-body">
+                      <div class="flvi-title">Counter Management</div>
+                      <div class="flvi-desc">
+                        Add/remove counters. View upload compliance (which
+                        counters uploaded today). Flag missing uploads.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flv-item">
+                    <span class="flvi-icon">📊</span>
+                    <div class="flvi-body">
+                      <div class="flvi-title">Sales Pattern Visibility</div>
+                      <div class="flvi-desc">
+                        Cross-counter sales trends. Top medicines by counter.
+                        Patient retention rates over time.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 9 — ITEM MAPPING ═══ -->
+        <div class="slide">
+          <div class="s-tag">Technical Design Decision</div>
+          <div class="s-title">
+            Handling <span>inconsistent item data</span> across counters
+          </div>
+          <div class="s-sub">
+            Counters use different item names and codes. We don't unify
+            everything — we use a confidence-based partial mapping that's
+            practical and maintainable.
+          </div>
+          <div class="slide-body">
+            <div class="mapping-layout">
+              <div>
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 8px;
+                  "
+                >
+                  How Matching Works
+                </div>
+                <div class="mapping-diagram">
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 40px 100px 1fr;
+                      gap: 4px;
+                      align-items: center;
+                      margin-bottom: 4px;
+                      font-size: 9px;
+                      color: var(--muted);
+                      letter-spacing: 1px;
+                      text-transform: uppercase;
+                      padding: 0 4px;
+                    "
+                  >
+                    <span>Counter Item Name</span><span></span
+                    ><span style="text-align: center">Confidence</span
+                    ><span style="padding-left: 8px">System Action</span>
+                  </div>
+                  <div class="md-row">
+                    <div class="md-src source">
+                      <div class="ms-label">Counter 3</div>
+                      <div class="ms-val">Metformin 500mg Tab</div>
+                    </div>
+                    <div class="md-arrow">→</div>
+                    <div class="md-match hi">High Match</div>
+                    <div class="md-arrow">→</div>
+                    <div
+                      class="md-src"
+                      style="
+                        border-color: rgba(65, 175, 0, 0.2);
+                        background: rgba(65, 175, 0, 0.03);
+                      "
+                    >
+                      <div class="ms-label">Master Item</div>
+                      <div class="ms-val" style="color: var(--g)">
+                        Metformin HCl 500mg
+                      </div>
+                    </div>
+                  </div>
+                  <div class="md-row">
+                    <div class="md-src source">
+                      <div class="ms-label">Counter 7</div>
+                      <div class="ms-val">MET500 TAB</div>
+                    </div>
+                    <div class="md-arrow">→</div>
+                    <div class="md-match med">Med Match</div>
+                    <div class="md-arrow">→</div>
+                    <div
+                      class="md-src"
+                      style="border-color: rgba(245, 158, 11, 0.2)"
+                    >
+                      <div class="ms-label">Suggested</div>
+                      <div class="ms-val" style="color: var(--amber)">
+                        Metformin HCl 500mg?
+                      </div>
+                    </div>
+                  </div>
+                  <div class="md-row">
+                    <div class="md-src source">
+                      <div class="ms-label">Counter 2</div>
+                      <div class="ms-val">XYZ-123-B</div>
+                    </div>
+                    <div class="md-arrow">→</div>
+                    <div class="md-match lo">No Match</div>
+                    <div class="md-arrow">→</div>
+                    <div
+                      class="md-src"
+                      style="border-color: rgba(255, 77, 77, 0.2)"
+                    >
+                      <div class="ms-label">Status</div>
+                      <div class="ms-val" style="color: var(--red)">
+                        Stored as-is. Unmapped.
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.02);
+                      border: 1px solid var(--border);
+                      border-radius: 8px;
+                      padding: 10px 12px;
+                      margin-top: 8px;
+                      font-size: 11px;
+                      color: var(--muted);
+                      line-height: 1.6;
+                    "
+                  >
+                    <strong style="color: var(--text)">Unmapped items</strong>
+                    still appear in patient history as purchased — they just
+                    don't link to a master item. CSR can still follow up. Admin
+                    can resolve mappings over time.
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: var(--muted);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 8px;
+                  "
+                >
+                  Our Strategy
+                </div>
+                <div class="strategy-cards">
+                  <div class="strat-card">
+                    <span class="sc-icon">🏷️</span>
+                    <div class="sc-body">
+                      <div class="sc-title">Fuzzy Name Matching</div>
+                      <div class="sc-desc">
+                        String similarity matching between counter item names
+                        and master list. High-confidence matches auto-linked.
+                        Medium flagged for admin review.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="strat-card">
+                    <span class="sc-icon">✋</span>
+                    <div class="sc-body">
+                      <div class="sc-title">Manual Override UI</div>
+                      <div class="sc-desc">
+                        Admin can manually link any counter item to a master
+                        item. One-time action. All future uploads auto-map using
+                        that link.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="strat-card">
+                    <span class="sc-icon">💊</span>
+                    <div class="sc-body">
+                      <div class="sc-title">Medicine Tags for Follow-Up</div>
+                      <div class="sc-desc">
+                        CSR can tag any medicine — mapped or unmapped — as
+                        "chronic" to include in follow-up logic. Mapping status
+                        doesn't block follow-up creation.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="strat-card">
+                    <span class="sc-icon">📈</span>
+                    <div class="sc-body">
+                      <div class="sc-title">Improves Over Time</div>
+                      <div class="sc-desc">
+                        As admin resolves mappings, coverage improves. Starts
+                        useful on day one — gets smarter each week without any
+                        system overhaul.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ SLIDE 10 — PHASES ═══ -->
+        <div class="slide">
+          <div class="s-tag">Delivery Roadmap</div>
+          <div class="s-title">
+            Phased build. <span>Prove it, then scale.</span>
+          </div>
+          <div class="s-sub">
+            Phase 1 is self-contained and delivers measurable value. Phase 2 and
+            3 activate only after Phase 1 is validated.
+          </div>
+          <div class="slide-body">
+            <div class="phases-layout">
+              <div class="phases-track">
+                <div class="phase-col now">
+                  <div class="pc-header now">
+                    <div class="pch-tag now-tag">Phase 1 — Build Now</div>
+                    <div class="pch-title">Follow-Up &amp; CSR Core</div>
+                    <div class="pch-desc">
+                      The foundation. Everything that replaces the Excel +
+                      WhatsApp workflow today.
+                    </div>
+                  </div>
+                  <div class="pc-items">
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Counter Upload Dashboard</div>
+                        <div class="pci-desc">
+                          Daily sales &amp; stock CSV upload. Status
+                          confirmation. Missed upload flags.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Patient Profile System</div>
+                        <div class="pci-desc">
+                          Auto-created from sales uploads. Phone as unique key.
+                          Cross-counter history.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Follow-Up Ticket Engine</div>
+                        <div class="pci-desc">
+                          Tier 1 &amp; 2 generation rules. Daily cap. CSR
+                          assignment.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">CSR Ticket Board</div>
+                        <div class="pci-desc">
+                          Prioritized daily list. Call outcome logging. Snooze
+                          &amp; reschedule.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Online Order Flow</div>
+                        <div class="pci-desc">
+                          CSR creates order → counter notified → accept/decline
+                          → follow-up scheduled.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Admin Dashboard</div>
+                        <div class="pci-desc">
+                          CSR performance, upload compliance, basic sales
+                          visibility.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Item Mapping (Partial)</div>
+                        <div class="pci-desc">
+                          Fuzzy match + manual override. Chronic medicine
+                          tagging.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pc-footer">
+                    <div class="pcf-label">
+                      → Pilot: 2 counters · Target: 60 days
+                    </div>
+                  </div>
+                </div>
+
+                <div class="phase-col">
+                  <div class="pc-header">
+                    <div class="pch-tag">Phase 2 — Post Validation</div>
+                    <div class="pch-title">B2C &amp; Order Intelligence</div>
+                    <div class="pch-desc">
+                      Expand when Phase 1 follow-up conversion is proven and
+                      stable.
+                    </div>
+                  </div>
+                  <div class="pc-items">
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">
+                          Patient Self-Ordering Portal
+                        </div>
+                        <div class="pci-desc">
+                          Customers browse, request medicines directly. CSR
+                          reviews &amp; confirms.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Real-Time Stock Engine</div>
+                        <div class="pci-desc">
+                          Live availability check across counters before order
+                          confirmation.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">CSR Admin Role (CSR Admin)</div>
+                        <div class="pci-desc">
+                          Senior CSR can manage junior CSRs, reassign tickets,
+                          view team performance.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Enhanced Item Mapping</div>
+                        <div class="pci-desc">
+                          Bulk mapping tools. Mapping confidence reports for
+                          admin.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">
+                          Order History &amp; Billing Ref
+                        </div>
+                        <div class="pci-desc">
+                          Full order trail per patient. Counter billing
+                          reference tracking.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pc-footer">
+                    <div class="pcf-label">
+                      Trigger: Phase 1 stable for 60+ days
+                    </div>
+                  </div>
+                </div>
+
+                <div class="phase-col">
+                  <div class="pc-header">
+                    <div class="pch-tag">Phase 3 — Scale</div>
+                    <div class="pch-title">Automation &amp; Intelligence</div>
+                    <div class="pch-desc">
+                      Automate what Phase 1 &amp; 2 proved works manually.
+                    </div>
+                  </div>
+                  <div class="pc-items">
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">WhatsApp / SMS Reminders</div>
+                        <div class="pci-desc">
+                          Auto-triggered refill reminders at cycle day 25.
+                          Replaces Tier 3 manual follow-up.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Dedicated Mobile App</div>
+                        <div class="pci-desc">
+                          Push notifications for patients. In-app ordering.
+                          Prescription history.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Retention Analytics</div>
+                        <div class="pci-desc">
+                          Cohort tracking. Churn prediction. Revenue impact per
+                          CSR action.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Multi-Counter Routing</div>
+                        <div class="pci-desc">
+                          Auto-assign orders to nearest/best-stocked counter.
+                          Reduce manual CSR intervention.
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pc-item">
+                      <div class="pci-dot"></div>
+                      <div class="pci-text">
+                        <div class="pci-title">Demand Forecasting</div>
+                        <div class="pci-desc">
+                          Predict stock needs per counter based on patient cycle
+                          data patterns.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pc-footer">
+                    <div class="pcf-label">
+                      Trigger: Phase 2 stable + volume growth
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /stage -->
+
+      <!-- RIGHT NAV -->
+      <div class="side-nav">
+        <button id="nextBtn" onclick="go(1)">→</button>
+      </div>
+    </div>
+
+    <script>
+      const slideLabels = [
+        "Cover",
+        "System Architecture",
+        "Data Flow",
+        "Follow-Up Engine",
+        "CSR Daily Workflow",
+        "Online Order Flow",
+        "Counter Dashboard",
+        "Admin Dashboard",
+        "Item Mapping Strategy",
+        "Delivery Roadmap",
+      ];
+
+      let cur = 0;
+      const slides = document.querySelectorAll(".slide");
+      const total = slides.length;
+      const dotContainer = document.getElementById("dotContainer");
+
+      // Build dots
+      slides.forEach((_, i) => {
+        const d = document.createElement("div");
+        d.className = "dot" + (i === 0 ? " active" : "");
+        d.onclick = () => goTo(i);
+        dotContainer.appendChild(d);
+      });
+
+      function goTo(n) {
+        slides[cur].classList.remove("active");
+        document.querySelectorAll(".dot")[cur].classList.remove("active");
+        cur = Math.max(0, Math.min(total - 1, n));
+        slides[cur].classList.add("active");
+        document.querySelectorAll(".dot")[cur].classList.add("active");
+        document.getElementById("slideLabel").textContent = slideLabels[cur];
+        document.getElementById("slideNum").textContent =
+          `${cur + 1} / ${total}`;
+        document.getElementById("prevBtn").disabled = cur === 0;
+        document.getElementById("nextBtn").disabled = cur === total - 1;
+        document.getElementById("progressBar").style.width =
+          `${((cur + 1) / total) * 100}%`;
+      }
+
+      function go(d) {
+        goTo(cur + d);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") go(1);
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(-1);
+      });
+
+      goTo(0);
+    </script>
+  </body>
+</html>
