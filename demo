@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PharmaLife — Role Dashboards | Kush Tech Nepal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --g:        #41af00;
+  --g-dim:    rgba(65,175,0,.12);
+  --g-border: rgba(65,175,0,.28);
+  --dark:     #111213;
+  --panel:    #181a1b;
+  --card:     #1f2122;
+  --card2:    #262829;
+  --border:   rgba(255,255,255,.07);
+  --border2:  rgba(255,255,255,.12);
+  --text:     #e8e6e1;
+  --muted:    rgba(232,230,225,.48);
+  --muted2:   rgba(232,230,225,.24);
+  --amber:    #e8a020;
+  --red:      #e05050;
+  --blue:     #4a9eff;
+
+  --font-body:  'IBM Plex Sans', sans-serif;
+  --font-serif: 'DM Serif Display', serif;
+  --font-mono:  'IBM Plex Mono', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; min-height:100vh; background:var(--dark); color:var(--text); font-family:var(--font-body); font-size:14px; line-height:1.5; }
+
+/* ── ROLE SWITCHER ── */
+.role-bar {
+  position:fixed; top:0; left:0; right:0; height:52px; z-index:200;
+  background:rgba(17,18,19,.96); border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  display:flex; align-items:center; padding:0 24px; gap:32px;
+}
+.rb-brand { display:flex; align-items:center; gap:10px; margin-right:auto; }
+.rb-logo { width:26px; height:26px; background:var(--g); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rb-logo svg { width:14px; height:14px; fill:white; }
+.rb-name { font-family:var(--font-serif); font-size:17px; letter-spacing:.2px; }
+.rb-name span { color:var(--g); }
+.rb-tabs { display:flex; gap:4px; }
+.rb-tab {
+  padding:6px 18px; border-radius:6px; border:1px solid transparent;
+  font-size:13px; font-weight:500; cursor:pointer; font-family:var(--font-body);
+  color:var(--muted); transition:all .2s; background:none;
+}
+.rb-tab:hover { color:var(--text); background:var(--card); }
+.rb-tab.active { color:var(--g); border-color:var(--g-border); background:var(--g-dim); }
+.rb-time { font-family:var(--font-mono); font-size:12px; color:var(--muted2); margin-left:auto; }
+
+/* ── LAYOUT ── */
+.app { display:flex; min-height:100vh; padding-top:52px; }
+
+/* SIDEBAR */
+.sidebar {
+  width:220px; min-height:calc(100vh - 52px);
+  background:var(--panel); border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  position:fixed; top:52px; left:0; bottom:0;
+  overflow-y:auto;
+}
+.sb-section { padding:20px 14px 8px; }
+.sb-section-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted2); font-weight:600; padding:0 8px; margin-bottom:6px; }
+.sb-item {
+  display:flex; align-items:center; gap:10px; padding:9px 10px;
+  border-radius:7px; cursor:pointer; color:var(--muted);
+  font-size:13px; font-weight:500; transition:all .18s;
+  border:1px solid transparent;
+}
+.sb-item:hover { color:var(--text); background:var(--card); }
+.sb-item.active { color:var(--g); background:var(--g-dim); border-color:var(--g-border); }
+.sb-item .si-icon { width:18px; text-align:center; font-size:15px; flex-shrink:0; }
+.sb-item .si-badge {
+  margin-left:auto; background:var(--g); color:white;
+  font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px;
+  font-family:var(--font-mono);
+}
+.sb-item .si-badge.amber { background:var(--amber); }
+.sb-footer { margin-top:auto; padding:14px; border-top:1px solid var(--border); }
+.sb-user { display:flex; align-items:center; gap:10px; }
+.sb-avatar { width:32px; height:32px; border-radius:50%; background:var(--g-dim); border:1.5px solid var(--g-border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--g); flex-shrink:0; }
+.sb-user-info .sui-name { font-size:13px; font-weight:600; }
+.sb-user-info .sui-role { font-size:11px; color:var(--muted); }
+
+/* MAIN */
+.main { margin-left:220px; flex:1; padding:28px 32px; min-height:calc(100vh - 52px); }
+
+/* PAGE HEADER */
+.page-header { margin-bottom:24px; }
+.ph-eyebrow { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--g); font-weight:600; margin-bottom:6px; }
+.ph-title { font-family:var(--font-serif); font-size:26px; color:var(--text); line-height:1.2; }
+.ph-sub { font-size:13px; color:var(--muted); margin-top:4px; }
+.ph-row { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
+
+/* CARDS & PANELS */
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; }
+.card-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.ch-title { font-size:13px; font-weight:600; }
+.ch-action { font-size:12px; color:var(--g); cursor:pointer; font-weight:500; }
+.card-body { padding:16px 18px; }
+
+/* STAT CARDS */
+.stats-row { display:grid; gap:16px; margin-bottom:20px; }
+.stats-4 { grid-template-columns:repeat(4,1fr); }
+.stats-3 { grid-template-columns:repeat(3,1fr); }
+.stat-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
+.stat-card.green { border-color:var(--g-border); background:rgba(65,175,0,.05); }
+.stat-card.amber { border-color:rgba(232,160,32,.25); background:rgba(232,160,32,.04); }
+.sc-label { font-size:11px; color:var(--muted); font-weight:500; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px; }
+.sc-val { font-family:var(--font-serif); font-size:30px; color:var(--text); line-height:1; }
+.stat-card.green .sc-val { color:var(--g); }
+.stat-card.amber .sc-val { color:var(--amber); }
+.sc-delta { font-size:11px; color:var(--muted); margin-top:6px; }
+.sc-delta .up { color:var(--g); font-weight:600; }
+.sc-delta .dn { color:var(--red); font-weight:600; }
+
+/* TABLES */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--border); text-align:left; }
+.data-table td { font-size:13px; padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:rgba(255,255,255,.02); }
+
+/* BADGES */
+.badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:5px; font-family:var(--font-mono); }
+.badge.green { background:rgba(65,175,0,.12); color:var(--g); border:1px solid rgba(65,175,0,.2); }
+.badge.amber { background:rgba(232,160,32,.1); color:var(--amber); border:1px solid rgba(232,160,32,.2); }
+.badge.red { background:rgba(224,80,80,.1); color:var(--red); border:1px solid rgba(224,80,80,.2); }
+.badge.muted { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid var(--border); }
+.badge.blue { background:rgba(74,158,255,.1); color:var(--blue); border:1px solid rgba(74,158,255,.2); }
+
+/* PROGRESS BAR */
+.prog-bar { height:5px; background:var(--card2); border-radius:3px; overflow:hidden; }
+.prog-fill { height:100%; background:var(--g); border-radius:3px; transition:width .4s; }
+.prog-fill.amber { background:var(--amber); }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:7px; font-size:13px; font-weight:500; cursor:pointer; font-family:var(--font-body); transition:all .18s; border:1px solid transparent; }
+.btn-primary { background:var(--g); color:white; border-color:var(--g); }
+.btn-primary:hover { background:rgba(65,175,0,.85); }
+.btn-ghost { background:transparent; color:var(--muted); border-color:var(--border2); }
+.btn-ghost:hover { color:var(--text); border-color:var(--border2); background:var(--card2); }
+.btn-sm { padding:5px 12px; font-size:12px; }
+.btn-danger { background:rgba(224,80,80,.1); color:var(--red); border-color:rgba(224,80,80,.25); }
+.btn-danger:hover { background:rgba(224,80,80,.18); }
+
+/* INPUT */
+.input-field { background:var(--card2); border:1px solid var(--border2); border-radius:7px; padding:8px 12px; font-size:13px; color:var(--text); font-family:var(--font-body); outline:none; width:100%; }
+.input-field:focus { border-color:var(--g-border); }
+.input-field::placeholder { color:var(--muted2); }
+
+/* NOTIF DOT */
+.notif-dot { width:8px; height:8px; border-radius:50%; background:var(--g); flex-shrink:0; }
+.notif-dot.amber { background:var(--amber); }
+.notif-dot.red { background:var(--red); }
+
+/* TICKET CARD */
+.ticket-card {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:14px 16px; margin-bottom:10px; cursor:pointer;
+  transition:border-color .18s, background .18s;
+  display:flex; gap:12px; align-items:flex-start;
+}
+.ticket-card:hover { border-color:var(--border2); background:var(--card2); }
+.ticket-card.t1 { border-left:3px solid var(--g); }
+.ticket-card.t2 { border-left:3px solid var(--amber); }
+.ticket-card.t3 { border-left:3px solid var(--border2); }
+.tc-left { flex:1; }
+.tc-name { font-size:14px; font-weight:600; margin-bottom:3px; }
+.tc-meta { font-size:12px; color:var(--muted); margin-bottom:8px; }
+.tc-medicine { font-size:12px; font-family:var(--font-mono); color:var(--text); background:var(--card2); display:inline-block; padding:3px 9px; border-radius:5px; border:1px solid var(--border2); margin-right:4px; margin-bottom:4px; }
+.tc-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0; }
+.tc-days { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+
+/* GRID LAYOUTS */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.grid-65-35 { display:grid; grid-template-columns:1fr .55fr; gap:20px; }
+.grid-35-65 { display:grid; grid-template-columns:.55fr 1fr; gap:20px; }
+
+/* UPLOAD ZONE */
+.upload-zone {
+  border:2px dashed var(--border2); border-radius:10px; padding:32px;
+  text-align:center; transition:all .2s; cursor:pointer;
+}
+.upload-zone:hover { border-color:var(--g-border); background:var(--g-dim); }
+.uz-icon { font-size:32px; margin-bottom:10px; }
+.uz-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.uz-desc { font-size:12px; color:var(--muted); }
+
+/* ORDER CARD */
+.order-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:10px; }
+.order-card.pending { border-color:rgba(232,160,32,.3); }
+.order-card.accepted { border-color:rgba(65,175,0,.3); }
+.oc-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+.oc-id { font-family:var(--font-mono); font-size:12px; color:var(--muted); }
+.oc-patient { font-size:14px; font-weight:600; margin-top:2px; }
+.oc-meta { font-size:12px; color:var(--muted); }
+.oc-medicines { margin:10px 0; display:flex; flex-wrap:wrap; gap:6px; }
+.oc-actions { display:flex; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+
+/* RULE CARD */
+.rule-card { background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:14px; }
+.rc-icon { font-size:18px; flex-shrink:0; }
+.rc-body { flex:1; }
+.rc-title { font-size:13px; font-weight:600; margin-bottom:2px; }
+.rc-desc { font-size:12px; color:var(--muted); }
+.rc-control { flex-shrink:0; }
+.toggle { width:38px; height:20px; background:var(--card2); border:1.5px solid var(--border2); border-radius:10px; position:relative; cursor:pointer; transition:all .2s; }
+.toggle.on { background:var(--g); border-color:var(--g); }
+.toggle::after { content:''; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:white; transition:left .2s; }
+.toggle.on::after { left:20px; }
+
+/* SECTION DIVIDER */
+.section-gap { margin-bottom:20px; }
+
+/* IN-APP NOTIFICATION */
+.notif-list { display:flex; flex-direction:column; gap:8px; }
+.notif-item { display:flex; gap:10px; align-items:flex-start; padding:11px 13px; background:var(--card2); border-radius:8px; border:1px solid var(--border); }
+.ni-dot { flex-shrink:0; margin-top:5px; }
+.ni-body { flex:1; }
+.ni-title { font-size:13px; font-weight:600; margin-bottom:2px; }
+.ni-desc { font-size:12px; color:var(--muted); }
+.ni-time { font-size:11px; color:var(--muted2); font-family:var(--font-mono); flex-shrink:0; }
+
+/* VIEWS */
+.view { display:none; }
+.view.active { display:block; }
+
+/* SCROLLABLE LIST */
+.scroll-list { max-height:340px; overflow-y:auto; padding-right:4px; }
+.scroll-list::-webkit-scrollbar { width:3px; }
+.scroll-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* PHONE DISPLAY */
+.phone-display { font-family:var(--font-mono); font-size:13px; color:var(--blue); background:rgba(74,158,255,.07); border:1px solid rgba(74,158,255,.15); border-radius:6px; padding:5px 10px; display:inline-block; cursor:default; }
+
+/* MINI CHART BARS */
+.mini-bars { display:flex; align-items:flex-end; gap:3px; height:48px; }
+.mini-bar { flex:1; background:var(--g-dim); border-radius:3px 3px 0 0; border:1px solid var(--g-border); transition:height .4s; }
+.mini-bar:hover { background:var(--g); }
+
+/* UPLOAD STATUS */
+.upload-status { display:flex; flex-direction:column; gap:8px; }
+.us-row { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--card2); border-radius:7px; border:1px solid var(--border); }
+.us-counter { font-size:13px; font-weight:500; flex:1; }
+.us-date { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+.us-status { font-size:11px; font-weight:600; }
+.us-status.ok { color:var(--g); }
+.us-status.miss { color:var(--red); }
+.us-status.late { color:var(--amber); }
+
+/* PATIENT PHONE ROW */
+.patient-phone-row { display:flex; align-items:center; gap:8px; margin-top:6px; }
+</style>
+</head>
+<body>
+
+<!-- ROLE BAR -->
+<div class="role-bar">
+  <div class="rb-brand">
+    <div class="rb-logo"><svg viewBox="0 0 20 20"><path d="M10 2L2 6v8l8 4 8-4V6L10 2zm0 2.5L16 8l-6 3-6-3 6-3.5zM3.5 9.5l6 3v5.5l-6-3V9.5zm8 8.5v-5.5l6-3v5.5l-6 3z"/></svg></div>
+    <span class="rb-name">Pharma<span>Life</span></span>
+  </div>
+  <div class="rb-tabs">
+    <button class="rb-tab active" onclick="switchRole('admin')">🔧 Admin</button>
+    <button class="rb-tab" onclick="switchRole('csr')">🎫 CSR</button>
+    <button class="rb-tab" onclick="switchRole('counter')">🏪 Counter</button>
+  </div>
+  <div class="rb-time" id="clockDisplay">—</div>
+</div>
+
+<div class="app">
+
+<!-- ══════════════════════════════════════
+     ADMIN VIEW
+══════════════════════════════════════ -->
+<div id="view-admin" class="view active" style="display:flex;width:100%">
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-section-label">Overview</div>
+      <div class="sb-item active"><span class="si-icon">📊</span> Dashboard</div>
+      <div class="sb-item"><span class="si-icon">📈</span> CSR Performance</div>
+      <div class="sb-item"><span class="si-icon">🗺️</span> Sales Patterns</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">Configuration</div>
+      <div class="sb-item"><span class="si-icon">🎯</span> Follow-Up Rules</div>
+      <div class="sb-item"><span class="si-icon">👥</span> CSR Users</div>
+      <div class="sb-item"><span class="si-icon">🏪</span> Counters</div>
+      <div class="sb-item"><span class="si-icon">📦</span> Master Item List</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">Data</div>
+      <div class="sb-item"><span class="si-icon">📤</span> Upload Status <span class="si-badge amber">2</span></div>
+      <div class="sb-item"><span class="si-icon">🔗</span> Item Mapping</div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar">A</div>
+        <div class="sb-user-info">
+          <div class="sui-name">Rajan Shrestha</div>
+          <div class="sui-role">Platform Admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="ph-row page-header">
+      <div>
+        <div class="ph-eyebrow">Admin Dashboard</div>
+        <div class="ph-title">Operations Overview</div>
+        <div class="ph-sub">Today — Sunday, 27 April 2025 · All 10 counters</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost">Export Report</button>
+        <button class="btn btn-primary">+ Add Counter</button>
+      </div>
+    </div>
+
+    <!-- STAT ROW -->
+    <div class="stats-row stats-4 section-gap">
+      <div class="stat-card green">
+        <div class="sc-label">Follow-Up Coverage</div>
+        <div class="sc-val">84%</div>
+        <div class="sc-delta"><span class="up">↑ 7%</span> vs last week</div>
+      </div>
+      <div class="stat-card green">
+        <div class="sc-label">Ticket → Order Conv.</div>
+        <div class="sc-val">31%</div>
+        <div class="sc-delta"><span class="up">↑ 4%</span> vs last week</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Tickets Closed Today</div>
+        <div class="sc-val">117</div>
+        <div class="sc-delta">of <strong>139</strong> assigned</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="sc-label">Counters Uploaded</div>
+        <div class="sc-val">8 / 10</div>
+        <div class="sc-delta"><span class="dn">2 counters missing</span> today</div>
+      </div>
+    </div>
+
+    <div class="grid-65-35 section-gap">
+      <!-- CSR PERFORMANCE TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <span class="ch-title">CSR Performance — Today</span>
+          <span class="ch-action">View Full Report →</span>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>CSR Name</th>
+                <th>Assigned</th>
+                <th>Completed</th>
+                <th>Orders Created</th>
+                <th>Conv. Rate</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Sita Thapa</strong></td>
+                <td>46</td>
+                <td>40</td>
+                <td>17</td>
+                <td><span class="badge green">37%</span></td>
+                <td style="min-width:90px"><div class="prog-bar"><div class="prog-fill" style="width:87%"></div></div></td>
+              </tr>
+              <tr>
+                <td><strong>Hari Khadka</strong></td>
+                <td>46</td>
+                <td>33</td>
+                <td>10</td>
+                <td><span class="badge amber">22%</span></td>
+                <td><div class="prog-bar"><div class="prog-fill amber" style="width:72%"></div></div></td>
+              </tr>
+              <tr>
+                <td><strong>Mina Shrestha</strong></td>
+                <td>47</td>
+                <td>44</td>
+                <td>16</td>
+                <td><span class="badge green">36%</span></td>
+                <td><div class="prog-bar"><div class="prog-fill" style="width:94%"></div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- UPLOAD STATUS -->
+      <div class="card">
+        <div class="card-header">
+          <span class="ch-title">Counter Upload Status</span>
+          <span class="ch-action">Notify Missing →</span>
+        </div>
+        <div class="card-body" style="padding:12px 14px">
+          <div class="upload-status">
+            <div class="us-row"><span class="us-counter">Counter 01 — Kathmandu</span><span class="us-date">09:14</span><span class="us-status ok">✓ Uploaded</span></div>
+            <div class="us-row"><span class="us-counter">Counter 02 — Lalitpur</span><span class="us-date">09:38</span><span class="us-status ok">✓ Uploaded</span></div>
+            <div class="us-row"><span class="us-counter">Counter 03 — Bhaktapur</span><span class="us-date">10:02</span><span class="us-status ok">✓ Uploaded</span></div>
+            <div class="us-row"><span class="us-counter">Counter 04 — Pokhara</span><span class="us-date">—</span><span class="us-status miss">✗ Missing</span></div>
+            <div class="us-row"><span class="us-counter">Counter 05 — Butwal</span><span class="us-date">08:55</span><span class="us-status ok">✓ Uploaded</span></div>
+            <div class="us-row"><span class="us-counter">Counter 06 — Biratnagar</span><span class="us-date">11:20</span><span class="us-status late">⚠ Late</span></div>
+            <div class="us-row"><span class="us-counter">Counter 07 — Hetauda</span><span class="us-date">09:05</span><span class="us-status ok">✓ Uploaded</span></div>
+            <div class="us-row"><span class="us-counter">Counter 08 — Dharan</span><span class="us-date">—</span><span class="us-status miss">✗ Missing</span></div>
+            <div class="us-row"><span class="us-counter">Counter 09 — Chitwan</span><span class="us-date">10:45</span><span class="us-status ok">✓ Uploaded</span></div>
+            <div class="us-row"><span class="us-counter">Counter 10 — Janakpur</span><span class="us-date">09:58</span><span class="us-status ok">✓ Uploaded</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOLLOW-UP RULES + SALES -->
+    <div class="grid-2 section-gap">
+      <div class="card">
+        <div class="card-header">
+          <span class="ch-title">Active Follow-Up Rules</span>
+          <span class="ch-action">Edit Rules →</span>
+        </div>
+        <div class="card-body">
+          <div class="rule-card">
+            <span class="rc-icon">🔁</span>
+            <div class="rc-body">
+              <div class="rc-title">Chronic Repeat Buyer (Tier 1)</div>
+              <div class="rc-desc">Patient bought same medicine 2+ times · Cycle window ≥ 25 of 30 days elapsed</div>
+            </div>
+            <div class="rc-control"><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+          <div class="rule-card">
+            <span class="rc-icon">📅</span>
+            <div class="rc-body">
+              <div class="rc-title">Lapsed High-Value (Tier 2)</div>
+              <div class="rc-desc">No purchase in 30–45 days · Last bill value ≥ Rs. 500</div>
+            </div>
+            <div class="rc-control"><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+          <div class="rule-card">
+            <span class="rc-icon">💊</span>
+            <div class="rc-body">
+              <div class="rc-title">Chronic Category Tag</div>
+              <div class="rc-desc">Auto-flag: Diabetes, BP, Thyroid, Cardiac medicines as Tier 1</div>
+            </div>
+            <div class="rc-control"><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+          <div class="rule-card">
+            <span class="rc-icon">🎯</span>
+            <div class="rc-body">
+              <div class="rc-title">Daily Ticket Cap per CSR</div>
+              <div class="rc-desc">Maximum 46 tickets/day per CSR · Tier 1 filled first</div>
+            </div>
+            <div class="rc-control"><span class="badge green">46 / day</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="ch-title">Top Medicines — This Week</span>
+          <span class="ch-action">Full Sales View →</span>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr><th>Medicine</th><th>Category</th><th>Units Sold</th><th>Counters</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Metformin 500mg</strong></td><td><span class="badge green">Chronic</span></td><td>4,820</td><td>9/10</td></tr>
+              <tr><td><strong>Amlodipine 5mg</strong></td><td><span class="badge green">Chronic</span></td><td>3,614</td><td>8/10</td></tr>
+              <tr><td><strong>Atorvastatin 10mg</strong></td><td><span class="badge green">Chronic</span></td><td>3,190</td><td>10/10</td></tr>
+              <tr><td><strong>Paracetamol 500mg</strong></td><td><span class="badge muted">Acute</span></td><td>6,440</td><td>10/10</td></tr>
+              <tr><td><strong>Levothyroxine 50mcg</strong></td><td><span class="badge green">Chronic</span></td><td>2,280</td><td>7/10</td></tr>
+              <tr><td><strong>Omeprazole 20mg</strong></td><td><span class="badge muted">Acute</span></td><td>1,940</td><td>6/10</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CSR VIEW
+══════════════════════════════════════ -->
+<div id="view-csr" class="view" style="display:none;width:100%">
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-section-label">My Work</div>
+      <div class="sb-item active"><span class="si-icon">🎫</span> Ticket Board <span class="si-badge">22</span></div>
+      <div class="sb-item"><span class="si-icon">🛒</span> My Orders <span class="si-badge">3</span></div>
+      <div class="sb-item"><span class="si-icon">👤</span> Patients</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">Actions</div>
+      <div class="sb-item"><span class="si-icon">➕</span> New Order</div>
+      <div class="sb-item"><span class="si-icon">👤</span> Add Patient</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">In-App</div>
+      <div class="sb-item"><span class="si-icon">🔔</span> Notifications <span class="si-badge">2</span></div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar">S</div>
+        <div class="sb-user-info">
+          <div class="sui-name">Sita Thapa</div>
+          <div class="sui-role">CSR Agent</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="ph-row page-header">
+      <div>
+        <div class="ph-eyebrow">CSR — Ticket Board</div>
+        <div class="ph-title">Today's Follow-Up Queue</div>
+        <div class="ph-sub">Sunday, 27 April 2025 · 22 tickets remaining · Target: 46/day</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="badge green" style="font-size:13px;padding:6px 14px;">40 done today</span>
+        <button class="btn btn-primary">+ New Order</button>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="card section-gap" style="padding:16px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:600;">Daily Target Progress</span>
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--g)">40 / 46</span>
+      </div>
+      <div class="prog-bar" style="height:8px"><div class="prog-fill" style="width:87%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--muted)">
+        <span>✓ Resolved: 28 &nbsp;·&nbsp; ⏰ Snoozed: 7 &nbsp;·&nbsp; ✗ No answer: 5</span>
+        <span>22 remaining</span>
+      </div>
+    </div>
+
+    <div class="grid-65-35">
+      <!-- TICKET LIST -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:600;color:var(--muted)">OPEN TICKETS — PRIORITIZED</span>
+          <div style="display:flex;gap:8px">
+            <span class="badge green">Tier 1: 14</span>
+            <span class="badge amber">Tier 2: 8</span>
+          </div>
+        </div>
+        <div class="scroll-list">
+
+          <div class="ticket-card t1">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <div class="notif-dot"></div>
+              <span style="font-size:9px;color:var(--g);font-family:var(--font-mono);writing-mode:vertical-rl;letter-spacing:1px">T1</span>
+            </div>
+            <div class="tc-left">
+              <div class="tc-name">Ram Prasad Sharma</div>
+              <div class="tc-meta">Counter 01 · Last purchase: 3 Apr 2025 · <strong style="color:var(--red)">Day 24 of 30-day cycle</strong></div>
+              <div>
+                <span class="tc-medicine">Metformin 500mg × 60</span>
+                <span class="tc-medicine">Atorvastatin 10mg × 30</span>
+              </div>
+              <div class="patient-phone-row">
+                <span style="font-size:12px;color:var(--muted)">Phone:</span>
+                <span class="phone-display">98XXXXXXXX</span>
+                <span style="font-size:11px;color:var(--muted)">(call outside app)</span>
+              </div>
+            </div>
+            <div class="tc-right">
+              <span class="badge green">Day 24</span>
+              <button class="btn btn-primary btn-sm">Open Ticket</button>
+            </div>
+          </div>
+
+          <div class="ticket-card t1">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <div class="notif-dot"></div>
+              <span style="font-size:9px;color:var(--g);font-family:var(--font-mono);writing-mode:vertical-rl;letter-spacing:1px">T1</span>
+            </div>
+            <div class="tc-left">
+              <div class="tc-name">Kamala Devi Rai</div>
+              <div class="tc-meta">Counter 03 · Last purchase: 28 Mar 2025 · <strong style="color:var(--red)">Day 30 of 30-day cycle</strong></div>
+              <div>
+                <span class="tc-medicine">Amlodipine 5mg × 30</span>
+                <span class="tc-medicine">Levothyroxine 50mcg × 30</span>
+              </div>
+              <div class="patient-phone-row">
+                <span style="font-size:12px;color:var(--muted)">Phone:</span>
+                <span class="phone-display">97XXXXXXXX</span>
+                <span style="font-size:11px;color:var(--muted)">(call outside app)</span>
+              </div>
+            </div>
+            <div class="tc-right">
+              <span class="badge red">Day 30</span>
+              <button class="btn btn-primary btn-sm">Open Ticket</button>
+            </div>
+          </div>
+
+          <div class="ticket-card t1">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <div class="notif-dot"></div>
+              <span style="font-size:9px;color:var(--g);font-family:var(--font-mono);writing-mode:vertical-rl;letter-spacing:1px">T1</span>
+            </div>
+            <div class="tc-left">
+              <div class="tc-name">Bikash Tamang</div>
+              <div class="tc-meta">Counter 02 · Last purchase: 5 Apr 2025 · Day 22 of 30-day cycle</div>
+              <div>
+                <span class="tc-medicine">Metformin 1000mg × 60</span>
+              </div>
+              <div class="patient-phone-row">
+                <span style="font-size:12px;color:var(--muted)">Phone:</span>
+                <span class="phone-display">98XXXXXXXX</span>
+                <span style="font-size:11px;color:var(--muted)">(call outside app)</span>
+              </div>
+            </div>
+            <div class="tc-right">
+              <span class="badge amber">Day 22</span>
+              <button class="btn btn-primary btn-sm">Open Ticket</button>
+            </div>
+          </div>
+
+          <div class="ticket-card t2">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <div class="notif-dot amber"></div>
+              <span style="font-size:9px;color:var(--amber);font-family:var(--font-mono);writing-mode:vertical-rl;letter-spacing:1px">T2</span>
+            </div>
+            <div class="tc-left">
+              <div class="tc-name">Sunita Gurung</div>
+              <div class="tc-meta">Counter 05 · Last purchase: 14 Feb 2025 · <strong style="color:var(--amber)">Lapsed 42 days</strong> · Last bill: Rs. 1,240</div>
+              <div>
+                <span class="tc-medicine">Atorvastatin 20mg × 30</span>
+                <span class="tc-medicine">Aspirin 75mg × 30</span>
+              </div>
+              <div class="patient-phone-row">
+                <span style="font-size:12px;color:var(--muted)">Phone:</span>
+                <span class="phone-display">98XXXXXXXX</span>
+                <span style="font-size:11px;color:var(--muted)">(call outside app)</span>
+              </div>
+            </div>
+            <div class="tc-right">
+              <span class="badge amber">Lapsed</span>
+              <button class="btn btn-ghost btn-sm">Open Ticket</button>
+            </div>
+          </div>
+
+          <div class="ticket-card t2">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+              <div class="notif-dot amber"></div>
+              <span style="font-size:9px;color:var(--amber);font-family:var(--font-mono);writing-mode:vertical-rl;letter-spacing:1px">T2</span>
+            </div>
+            <div class="tc-left">
+              <div class="tc-name">Dipak Pokharel</div>
+              <div class="tc-meta">Counter 07 · Last purchase: 22 Feb 2025 · Lapsed 34 days · Last bill: Rs. 780</div>
+              <div>
+                <span class="tc-medicine">Omeprazole 20mg × 30</span>
+              </div>
+              <div class="patient-phone-row">
+                <span style="font-size:12px;color:var(--muted)">Phone:</span>
+                <span class="phone-display">98XXXXXXXX</span>
+                <span style="font-size:11px;color:var(--muted)">(call outside app)</span>
+              </div>
+            </div>
+            <div class="tc-right">
+              <span class="badge amber">Lapsed</span>
+              <button class="btn btn-ghost btn-sm">Open Ticket</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- IN-APP NOTIFICATIONS -->
+        <div class="card">
+          <div class="card-header">
+            <span class="ch-title">🔔 In-App Notifications</span>
+            <span class="badge green" style="font-size:11px">2 new</span>
+          </div>
+          <div class="card-body" style="padding:10px 12px">
+            <div class="notif-list">
+              <div class="notif-item" style="border-color:rgba(65,175,0,.25)">
+                <div class="ni-dot"><div class="notif-dot"></div></div>
+                <div class="ni-body">
+                  <div class="ni-title">Order #0047 Accepted</div>
+                  <div class="ni-desc">Counter 01 confirmed Ram Sharma's order. All medicines available.</div>
+                </div>
+                <div class="ni-time">10:42</div>
+              </div>
+              <div class="notif-item" style="border-color:rgba(232,160,32,.25)">
+                <div class="ni-dot"><div class="notif-dot amber"></div></div>
+                <div class="ni-body">
+                  <div class="ni-title">Order #0045 — Partial</div>
+                  <div class="ni-desc">Counter 03 has Metformin but not Atorvastatin. Reassign?</div>
+                </div>
+                <div class="ni-time">10:18</div>
+              </div>
+              <div class="notif-item">
+                <div class="ni-dot"><div class="notif-dot" style="background:var(--muted2)"></div></div>
+                <div class="ni-body">
+                  <div class="ni-title">Order #0043 Dispatched</div>
+                  <div class="ni-desc">Counter 02 confirmed dispatch for Kamala Rai's order.</div>
+                </div>
+                <div class="ni-time">09:54</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVE ORDERS -->
+        <div class="card">
+          <div class="card-header">
+            <span class="ch-title">My Active Orders</span>
+            <span class="ch-action">View All →</span>
+          </div>
+          <div class="card-body" style="padding:10px 12px">
+            <div class="order-card pending" style="margin-bottom:8px;padding:12px">
+              <div class="oc-header">
+                <div><div class="oc-id">#0047</div><div class="oc-patient">Ram Prasad Sharma</div></div>
+                <span class="badge amber">Pending Counter</span>
+              </div>
+              <div class="oc-meta">Counter 01 · Metformin 500mg, Atorvastatin 10mg</div>
+            </div>
+            <div class="order-card accepted" style="padding:12px">
+              <div class="oc-header">
+                <div><div class="oc-id">#0045</div><div class="oc-patient">Sunita Gurung</div></div>
+                <span class="badge green">Accepted</span>
+              </div>
+              <div class="oc-meta">Counter 05 · Atorvastatin 20mg, Aspirin 75mg</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     COUNTER VIEW
+══════════════════════════════════════ -->
+<div id="view-counter" class="view" style="display:none;width:100%">
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-section-label">Dashboard</div>
+      <div class="sb-item active"><span class="si-icon">📊</span> Overview</div>
+      <div class="sb-item"><span class="si-icon">📋</span> Orders <span class="si-badge">2</span></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">Daily Uploads</div>
+      <div class="sb-item"><span class="si-icon">📤</span> Upload Sales</div>
+      <div class="sb-item"><span class="si-icon">📦</span> Upload Stock</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">In-App</div>
+      <div class="sb-item"><span class="si-icon">🔔</span> Notifications <span class="si-badge amber">2</span></div>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar">C</div>
+        <div class="sb-user-info">
+          <div class="sui-name">Counter 01</div>
+          <div class="sui-role">Kathmandu Hospital</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="ph-row page-header">
+      <div>
+        <div class="ph-eyebrow">Counter Dashboard — Counter 01</div>
+        <div class="ph-title">Kathmandu Hospital Pharmacy</div>
+        <div class="ph-sub">Sunday, 27 April 2025 · Today's uploads &amp; incoming orders</div>
+      </div>
+    </div>
+
+    <!-- UPLOAD STATUS ROW -->
+    <div class="stats-row stats-3 section-gap">
+      <div class="stat-card green">
+        <div class="sc-label">Sales Upload</div>
+        <div class="sc-val" style="font-size:22px;font-family:var(--font-body);font-weight:600;">✓ Done</div>
+        <div class="sc-delta">Uploaded at 09:14 AM · 1,847 rows</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="sc-label">Stock Upload</div>
+        <div class="sc-val" style="font-size:22px;font-family:var(--font-body);font-weight:600;color:var(--amber);">Pending</div>
+        <div class="sc-delta"><span class="dn">Not yet uploaded today</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Pending Orders</div>
+        <div class="sc-val">2</div>
+        <div class="sc-delta">Awaiting your response</div>
+      </div>
+    </div>
+
+    <div class="grid-2 section-gap">
+
+      <!-- UPLOAD SECTION -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-header"><span class="ch-title">Daily Stock Upload</span><span class="badge amber">Required Today</span></div>
+          <div class="card-body">
+            <div class="upload-zone" onclick="this.style.borderColor='var(--g)';this.style.background='var(--g-dim)'">
+              <div class="uz-icon">📦</div>
+              <div class="uz-title">Upload Stock CSV / Excel</div>
+              <div class="uz-desc">Drag &amp; drop or click to browse · CSV or .xlsx · Today's stock snapshot</div>
+              <button class="btn btn-primary" style="margin-top:14px">Choose File</button>
+            </div>
+            <div style="margin-top:12px;padding:10px 12px;background:var(--card2);border-radius:7px;border:1px solid var(--border)">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">LAST UPLOAD — YESTERDAY</div>
+              <div style="font-size:13px;">stock_counter01_26Apr.xlsx &nbsp;·&nbsp; <span style="color:var(--g)">✓ 423 items</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IN-APP NOTIFICATIONS -->
+        <div class="card">
+          <div class="card-header"><span class="ch-title">🔔 In-App Notifications</span><span class="badge amber">2 new</span></div>
+          <div class="card-body" style="padding:10px 12px">
+            <div class="notif-list">
+              <div class="notif-item" style="border-color:rgba(232,160,32,.3)">
+                <div class="ni-dot"><div class="notif-dot amber"></div></div>
+                <div class="ni-body">
+                  <div class="ni-title">New Order Request — #0047</div>
+                  <div class="ni-desc">CSR Sita Thapa sent an order for Ram Sharma. Review and respond.</div>
+                </div>
+                <div class="ni-time">10:30</div>
+              </div>
+              <div class="notif-item" style="border-color:rgba(232,160,32,.3)">
+                <div class="ni-dot"><div class="notif-dot amber"></div></div>
+                <div class="ni-body">
+                  <div class="ni-title">New Order Request — #0048</div>
+                  <div class="ni-desc">CSR Hari Khadka sent an order for Dipak Pokharel. Review and respond.</div>
+                </div>
+                <div class="ni-time">10:48</div>
+              </div>
+              <div class="notif-item">
+                <div class="ni-dot"><div class="notif-dot" style="background:var(--muted2)"></div></div>
+                <div class="ni-body">
+                  <div class="ni-title">Stock Upload Reminder</div>
+                  <div class="ni-desc">Today's stock data has not been uploaded yet. Please upload before 2:00 PM.</div>
+                </div>
+                <div class="ni-time">09:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS SECTION -->
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px">Incoming Orders — Action Required</div>
+
+        <div class="order-card pending">
+          <div class="oc-header">
+            <div>
+              <div class="oc-id">Order #0047 · via CSR Sita Thapa · 10:30 AM</div>
+              <div class="oc-patient">Ram Prasad Sharma</div>
+              <div class="oc-meta" style="margin-top:3px">98XXXXXXXX · Chronic Follow-Up</div>
+            </div>
+            <span class="badge amber">Awaiting Response</span>
+          </div>
+          <div class="oc-medicines">
+            <span class="tc-medicine">Metformin 500mg × 60</span>
+            <span class="tc-medicine">Atorvastatin 10mg × 30</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">
+            Stock reference: today's upload · Metformin ✓ in stock · Atorvastatin ✓ in stock
+          </div>
+          <div class="oc-actions">
+            <button class="btn btn-primary">✓ Accept Full Order</button>
+            <button class="btn btn-ghost">Select Available Only</button>
+            <button class="btn btn-danger">✗ Decline</button>
+          </div>
+        </div>
+
+        <div class="order-card pending">
+          <div class="oc-header">
+            <div>
+              <div class="oc-id">Order #0048 · via CSR Hari Khadka · 10:48 AM</div>
+              <div class="oc-patient">Dipak Pokharel</div>
+              <div class="oc-meta" style="margin-top:3px">98XXXXXXXX · Lapsed Follow-Up</div>
+            </div>
+            <span class="badge amber">Awaiting Response</span>
+          </div>
+          <div class="oc-medicines">
+            <span class="tc-medicine">Omeprazole 20mg × 30</span>
+            <span class="tc-medicine">Pantoprazole 40mg × 14</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">
+            Stock reference: today's upload · Omeprazole ✓ in stock · Pantoprazole ✗ check stock
+          </div>
+          <div class="oc-actions">
+            <button class="btn btn-primary">✓ Accept Full Order</button>
+            <button class="btn btn-ghost">Select Available Only</button>
+            <button class="btn btn-danger">✗ Decline</button>
+          </div>
+        </div>
+
+        <div class="order-card accepted">
+          <div class="oc-header">
+            <div>
+              <div class="oc-id">Order #0043 · via CSR Sita Thapa · 09:40 AM</div>
+              <div class="oc-patient">Kamala Devi Rai</div>
+            </div>
+            <span class="badge green">Accepted &amp; Dispatched</span>
+          </div>
+          <div class="oc-meta">Amlodipine 5mg × 30, Levothyroxine 50mcg × 30 · Dispatched with bill</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// Clock
+function tick() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent =
+    now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+tick(); setInterval(tick, 1000);
+
+// Role switcher
+function switchRole(role) {
+  document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; v.classList.remove('active'); });
+  document.querySelectorAll('.rb-tab').forEach(t => t.classList.remove('active'));
+
+  const el = document.getElementById('view-' + role);
+  el.style.display = 'flex';
+  el.classList.add('active');
+
+  const tabs = document.querySelectorAll('.rb-tab');
+  const map = { admin: 0, csr: 1, counter: 2 };
+  tabs[map[role]].classList.add('active');
+}
+</script>
+</body>
+</html>
